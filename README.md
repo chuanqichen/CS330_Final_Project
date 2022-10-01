@@ -1,4 +1,6 @@
 # CS330 Final Project
+## Project Guidelines
+https://cs330.stanford.edu/materials/CS330_Project_Guidelines.pdf
 
 ## Timeline
 1. Project survey – 10/10/22(see Section 2)
