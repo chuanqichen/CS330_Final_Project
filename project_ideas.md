@@ -4,3 +4,4 @@
 * dataset are huge 
 * no github code
 * archiecture use LSTM, we could use multi attentions head such as bert, GPT3 ???
+* grid search could be improved with evolution strategies ???
