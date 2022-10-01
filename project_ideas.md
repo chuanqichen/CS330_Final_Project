@@ -1,7 +1,10 @@
 ## Meta Learning
 
-[Few Shot Learning for Lesion Classification](http://cs330.stanford.edu/fall2020/projects2020/CS330_Surya_Narayanan_Oussama_Fadil_Sandra_Ha.pdf)
-* dataset are huge 
+### Robot Multi-Tasks
+
+
+### [Few Shot Learning for Lesion Classification](http://cs330.stanford.edu/fall2020/projects2020/CS330_Surya_Narayanan_Oussama_Fadil_Sandra_Ha.pdf)
+* [dataset are huge] (https://github.com/viggin/DeepLesion_manual_test_set)
 * no github code
 * archiecture use LSTM, we could use multi attentions head such as bert, GPT3 ???
 * uses ResNet50 instead of MobileNet-V2 model
