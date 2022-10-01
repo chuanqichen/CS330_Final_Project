@@ -4,4 +4,5 @@
 * dataset are huge 
 * no github code
 * archiecture use LSTM, we could use multi attentions head such as bert, GPT3 ???
+* uses ResNet50 instead of MobileNet-V2 model
 * grid search could be improved with evolution strategies ???
