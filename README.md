@@ -10,3 +10,5 @@ https://cs330.stanford.edu/materials/CS330_Project_Guidelines.pdf
 3. Project milestone – 11/16/22(see Section 4)
 4. Poster presentation – 12/07/22 3-6pm(see Section 5)
 5. Final project report – 12/12/22(see Section 6)
+
+## Project resources (dataset and papers)
