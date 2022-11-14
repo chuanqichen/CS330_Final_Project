@@ -5,7 +5,8 @@ import torch
 from torch.utils.data import IterableDataset
 import time
 import imageio
-
+import csv
+import pandas as pd
 
 def get_images(paths, labels, nb_samples=None, shuffle=True):
     """
@@ -160,3 +161,11 @@ class DataGenerator(IterableDataset):
     def __iter__(self):
         while True:
             yield self._sample()
+
+def read_csv():
+    v1_csv_file = r"./data/v1_a.csv"
+    v1_csv = pd.read_csv(v1_csv_file)
+    print(v1_csv.head())
+
+if __name__ == "__main__":
+    read_csv()
