@@ -35,7 +35,6 @@ dependencies:
   - libbrotlicommon=1.0.9=h5eee18b_7
   - libbrotlidec=1.0.9=h5eee18b_7
   - libbrotlienc=1.0.9=h5eee18b_7
-  - libclang=10.0.1=default_hb85057a_2
   - libdeflate=1.8=h7f8727e_5
   - libedit=3.1.20210910=h7f8727e_0
   - libevent=2.1.12=h8f2d780_0
@@ -108,6 +107,7 @@ dependencies:
     - argon2-cffi==21.3.0
     - argon2-cffi-bindings==21.2.0
     - asttokens==2.0.8
+    - astunparse==1.6.3
     - async-timeout==4.0.2
     - attrs==22.1.0
     - backcall==0.2.0
@@ -128,10 +128,13 @@ dependencies:
     - executing==1.1.1
     - fastjsonschema==2.16.2
     - filelock==3.8.0
+    - flatbuffers==22.10.26
     - frozenlist==1.3.1
     - fsspec==2022.10.0
+    - gast==0.4.0
     - google-auth==2.12.0
     - google-auth-oauthlib==0.4.6
+    - google-pasta==0.2.0
     - googledrivedownloader==0.4
     - grpcio==1.49.1
     - h5py==3.7.0
@@ -151,6 +154,9 @@ dependencies:
     - jupyter-client==7.3.5
     - jupyter-core==4.11.1
     - jupyterlab-pygments==0.2.2
+    - keras==2.10.0
+    - keras-preprocessing==1.1.2
+    - libclang==14.0.6
     - lockfile==0.12.2
     - markdown==3.4.1
     - markupsafe==2.1.1
@@ -207,6 +213,10 @@ dependencies:
     - tensorboard==2.10.1
     - tensorboard-data-server==0.6.1
     - tensorboard-plugin-wit==1.8.1
+    - tensorflow-estimator==2.10.0
+    - tensorflow-gpu==2.10.0
+    - tensorflow-io-gcs-filesystem==0.27.0
+    - termcolor==2.1.0
     - terminado==0.16.0
     - threadpoolctl==3.1.0
     - tinycss2==1.1.1
@@ -224,6 +234,7 @@ dependencies:
     - wcwidth==0.2.5
     - webencodings==0.5.1
     - werkzeug==2.2.2
+    - wrapt==1.14.1
     - xxhash==3.0.0
     - yarl==1.8.1
     - zipp==3.8.1
