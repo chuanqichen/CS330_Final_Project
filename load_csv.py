@@ -59,7 +59,7 @@ class DataGenerator(IterableDataset):
         self.num_samples_per_class = num_samples_per_class
         self.num_classes = num_classes
 
-        data_folder = config.get("data_folder", "./omniglot_resized")
+        data_folder = config.get("data_folder", r"./data/v1_a.csv")
         self.img_size = config.get("img_size", (28, 28))
 
         self.dim_input = np.prod(self.img_size)
@@ -73,6 +73,11 @@ class DataGenerator(IterableDataset):
             if os.path.isdir(os.path.join(data_folder, family, character))
         ]
 
+        self.df = read_csv(data_folder)
+        self.names_labels = self.df['golden_label'].unique()
+        self.num_classes = self.df['golden_label'].nunique()
+        self.num_data = self.df.shape[0]
+
         random.seed(1)
         random.shuffle(character_folders)
         num_val = 100
@@ -80,16 +85,22 @@ class DataGenerator(IterableDataset):
         self.metatrain_character_folders = character_folders[:num_train]
         self.metaval_character_folders = character_folders[num_train : num_train + num_val]
         self.metatest_character_folders = character_folders[num_train + num_val :]
+
+        self.train_set= self.df.sample(frac=0.8,random_state=200)
+        validation_test = self.df.drop(self.train_set.index)
+        self.validation_set = validation_test.sample(frac=0.5, random_state=200)
+        self.test_set = validation_test.drop(self.validation_set.index)
+
         self.device = device
         self.image_caching = cache
         self.stored_images = {}
 
         if batch_type == "train":
-            self.folders = self.metatrain_character_folders
+            self.folders = self.train_set
         elif batch_type == "val":
-            self.folders = self.metaval_character_folders
+            self.folders = self.validation_set
         else:
-            self.folders = self.metatest_character_folders
+            self.folders = self.test_set
 
     def image_file_to_array(self, filename, dim_input):
         """

@@ -30,7 +30,7 @@ class MANN(nn.Module):
         self.num_classes = num_classes
         self.samples_per_class = samples_per_class
 
-        self.layer1 = torch.nn.LSTM(num_classes + 784, hidden_dim, batch_first=True)
+        self.layer1 = torch.nn.LSTM(num_classes + 2925, hidden_dim, batch_first=True)
         self.layer2 = torch.nn.LSTM(hidden_dim, num_classes, batch_first=True)
         initialize_weights(self.layer1)
         initialize_weights(self.layer2)
@@ -39,7 +39,7 @@ class MANN(nn.Module):
         """
         MANN
         Args:
-            input_images: [B, K+1, N, 784] flattened images
+            input_images: [B, K+1, N, 2925] flattened images
             labels: [B, K+1, N, N] ground truth labels
         Returns:
             [B, K+1, N, N] predictions
@@ -102,15 +102,6 @@ def main(config):
         "_hdim" + str(config.hidden_dim) + "_learning_rate_" +str(config.learning_rate) 
         + "_run" + str(config.random_seed)
     )
-
-    # Download Omniglot Dataset
-    if not os.path.isdir("./omniglot_resized"):
-        gdd.download_file_from_google_drive(
-            file_id="1iaSFXIYC3AB8q9K_M-oVMa4pmB7yKMtI",
-            dest_path="./omniglot_resized.zip",
-            unzip=True,
-        )
-    assert os.path.isdir("./omniglot_resized")
 
     # Create Data Generator
     train_iterable = DataGenerator(
@@ -201,4 +192,5 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=float, default=1e-3)
     parser.add_argument("--train_steps", type=int, default=25000)
     parser.add_argument("--image_caching", type=bool, default=True)
+    parser.add_argument("--data_folder", type=str, help="csv file name or data folders")
     main(parser.parse_args())
