@@ -7,6 +7,7 @@ import time
 import imageio
 import csv
 import pandas as pd
+import movecolumn as mc
 
 def get_images(paths, labels, nb_samples=None, shuffle=True):
     """
@@ -162,10 +163,48 @@ class DataGenerator(IterableDataset):
         while True:
             yield self._sample()
 
-def read_csv(v1_csv_file=r"./data/v1_a.csv"):
-    v1_csv_file = r"./data/v1_a.csv"
-    v1_csv = pd.read_csv(v1_csv_file)
-    print(v1_csv.head())
+def replace_char(a):
+    b = ['[', ']']
+    for char in b:
+        a = a.replace(char, "")
+    a = [float(k) for k in a.split(",")]
+    return a
+
+def read_csv(v1_csv_file=r"./data/v1_a.csv")->pd.DataFrame:
+    df = pd.read_csv(v1_csv_file)
+
+    # drop the first column 
+    # df.drop(columns="Field Index", inplace=True)    
+    df = df.iloc[: , 1:]
+
+    columns_to_drop = ['pixel_x', 'tile_height', 'CLOUD_MASK_PNG/time_secs', 'SENTINEL2/time_secs','tile_y', 
+                    'SENTINEL2/image_path', 'tile_width', 'field_id', 'CLOUD_MASK_PNG/image_path', 'tile_x', 
+                    'county_fips_code', 'zoom_level', 'CLOUD_MASK_PNG/1', 'pixel_y', 'SERENUS_GEOTIFF/image_path', 
+                    'SERENUS_GEOTIFF/time_secs']    
+    df.drop(columns=columns_to_drop, inplace=True)   
+    columns = df.columns
+    
+    sentinel2_cols = [col for col in columns if col.startswith("SENTINEL2")]
+    serenus_geotiff_cols = [col for col in columns if col.startswith("SERENUS_GEOTIFF")]
+    feature_cols = sentinel2_cols + serenus_geotiff_cols
+    for column in feature_cols:
+        df[column] = [replace_char(df[column][i]) for i in range(df.shape[0])]
+
+    # normalize certain column features 
+    for column in feature_cols:
+        if column.endswith("ndti") or column.endswith("savi") or column.endswith("ndvi"):
+            continue
+        else:
+            df[column] = [[k/10000 for k in df[column][i]] for i in range(df.shape[0])]
+
+    mc.MoveToLast(df, 'golden_label')
+    df['golden_label'] = [df['golden_label'][i][3:-2] for i in range(df.shape[0])]
+
+    return df
+
 
 if __name__ == "__main__":
-    read_csv()
+    df = read_csv()
+    names_labels = df['golden_label'].unique()
+    print(df.head())
+    print(names_labels)
