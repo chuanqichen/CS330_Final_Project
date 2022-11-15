@@ -162,7 +162,7 @@ class DataGenerator(IterableDataset):
         while True:
             yield self._sample()
 
-def read_csv():
+def read_csv(v1_csv_file=r"./data/v1_a.csv"):
     v1_csv_file = r"./data/v1_a.csv"
     v1_csv = pd.read_csv(v1_csv_file)
     print(v1_csv.head())
