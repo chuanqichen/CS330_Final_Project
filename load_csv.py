@@ -8,6 +8,34 @@ import imageio
 import csv
 import pandas as pd
 import movecolumn as mc
+import unittest
+import argparse
+
+
+def get_lands(paths, labels, nb_samples=None, shuffle=True):
+    """
+    Takes a set of character folders and labels and returns paths to image files
+    paired with labels.
+    Args:
+        paths: A list of character folders
+        labels: List or numpy array of same length as paths
+        nb_samples: Number of images to retrieve per character
+    Returns:
+        List of (label, image_path) tuples
+    """
+    if nb_samples is not None:
+        sampler = lambda x: random.sample(x, nb_samples)
+    else:
+        sampler = lambda x: x
+    images_labels = [
+        (i, os.path.join(path, image))
+        for i, path in zip(labels, paths)
+        for image in sampler(os.listdir(path))
+    ]
+    if shuffle:
+        random.shuffle(images_labels)
+    return images_labels
+
 
 def get_images(paths, labels, nb_samples=None, shuffle=True):
     """
@@ -147,13 +175,14 @@ class DataGenerator(IterableDataset):
 
         #############################
         #### YOUR CODE GOES HERE ####
-        sample_field = self.folders.sample()
+        sample_lands = random.sample(self.names_labels, self.num_classes)
 
-        sample_characters = random.sample(self.folders, self.num_classes)
+        pd = self.folders['golden_label'].isin(sample_lands)
+
         labels = np.eye(self.num_classes)
         k = self.num_samples_per_class-1
-        sample_set = get_images(sample_characters, labels, nb_samples=k, shuffle=False)
-        query_set = get_images(sample_characters, labels, nb_samples=1, shuffle=True)
+        sample_set = get_lands(pd, sample_lands, labels, nb_samples=k, shuffle=False)
+        query_set = get_lands(pd, sample_lands, labels, nb_samples=1, shuffle=True)
         sample_set.extend(query_set)
 
         images = []
@@ -215,9 +244,56 @@ def read_csv(v1_csv_file=r"./data/v1_a.csv")->pd.DataFrame:
 
     return df
 
+class TestLoadCSV(unittest.TestCase):
+    @staticmethod
+    def get_config():
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--num_classes", type=int, default=5)
+        parser.add_argument("--num_shot", type=int, default=1)
+        parser.add_argument("--num_workers", type=int, default=4)
+        parser.add_argument("--eval_freq", type=int, default=100)
+        parser.add_argument("--meta_batch_size", type=int, default=128)
+        parser.add_argument("--hidden_dim", type=int, default=128)
+        parser.add_argument("--random_seed", type=int, default=123)
+        parser.add_argument("--learning_rate", type=float, default=1e-3)
+        parser.add_argument("--train_steps", type=int, default=25000)
+        parser.add_argument("--image_caching", type=bool, default=True)
+        parser.add_argument("--data_folder", type=str, help="csv file name or data folders")
+        config = parser.parse_known_args()
+        return config
+    
+    def test_load_csv_success(self):
+        df = read_csv()
+        names_labels = df['golden_label'].unique()
+        print(df.head())
+        train_set= df.sample(frac=0.8,random_state=200)
+        validation_test = df.drop(train_set.index)
+        validation_set = validation_test.sample(frac=0.5, random_state=200)
+        test_set = validation_test.drop(validation_set.index)
+        print(names_labels)
 
-if __name__ == "__main__":
-    df = read_csv()
-    names_labels = df['golden_label'].unique()
-    print(df.head())
-    print(names_labels)
+    def test_data_generator_success(self):
+        config = TestLoadCSV.get_config()[0]
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+        # Create Data Generator
+        train_iterable = DataGenerator(
+            config.num_classes,
+            config.num_shot + 1,
+            batch_type="train",
+            device=device,
+            cache=config.image_caching,
+        )
+        train_loader = iter(
+            torch.utils.data.DataLoader(
+                train_iterable,
+                batch_size=config.meta_batch_size,
+                num_workers=config.num_workers,
+                pin_memory=True,
+            )
+        )
+
+if __name__ == '__main__':
+    unittest.main()
