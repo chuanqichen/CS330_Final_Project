@@ -147,6 +147,8 @@ class DataGenerator(IterableDataset):
 
         #############################
         #### YOUR CODE GOES HERE ####
+        sample_field = self.folders.sample()
+
         sample_characters = random.sample(self.folders, self.num_classes)
         labels = np.eye(self.num_classes)
         k = self.num_samples_per_class-1
