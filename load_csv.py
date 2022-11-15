@@ -93,26 +93,14 @@ class DataGenerator(IterableDataset):
         self.dim_input = np.prod(self.img_size)
         self.dim_output = self.num_classes
 
-        character_folders = [
-            os.path.join(data_folder, family, character)
-            for family in os.listdir(data_folder)
-            if os.path.isdir(os.path.join(data_folder, family))
-            for character in os.listdir(os.path.join(data_folder, family))
-            if os.path.isdir(os.path.join(data_folder, family, character))
-        ]
-
         self.df = read_csv(data_folder)
         self.names_labels = self.df['golden_label'].unique()
         self.num_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
 
         random.seed(1)
-        random.shuffle(character_folders)
         num_val = 100
         num_train = 1100
-        self.metatrain_character_folders = character_folders[:num_train]
-        self.metaval_character_folders = character_folders[num_train : num_train + num_val]
-        self.metatest_character_folders = character_folders[num_train + num_val :]
 
         self.train_set= self.df.sample(frac=0.8,random_state=200)
         validation_test = self.df.drop(self.train_set.index)
@@ -294,6 +282,12 @@ class TestLoadCSV(unittest.TestCase):
                 pin_memory=True,
             )
         )
+
+        i, l = next(train_loader)
+        i, l = i.to(device), l.to(device)
+        print(i)
+        print(l)
+
 
 if __name__ == '__main__':
     unittest.main()
