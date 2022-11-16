@@ -25,7 +25,7 @@ def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     """
     if nb_samples is not None:
         #sampler = lambda x: random.sample(x, nb_samples)
-        sampler = lambda x: x.sample(nb_samples, replace=True).values
+        sampler = lambda x: x.sample(nb_samples, replace=False).values
     else:
         #sampler = lambda x: x
         sampler = lambda x: x.sample(1)
