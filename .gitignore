@@ -2,3 +2,6 @@
 
 # ignore recordio file 
 *.recordio
+
+# ignore virtual env
+*venv

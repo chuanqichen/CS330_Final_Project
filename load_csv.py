@@ -34,6 +34,8 @@ def get_images(paths, labels, nb_samples=None, shuffle=True):
     return images_labels
 
 
+
+
 class DataGenerator(IterableDataset):
     """
     Data Generator capable of generating batches of Omniglot data.
@@ -60,31 +62,32 @@ class DataGenerator(IterableDataset):
         self.num_classes = num_classes
 
         data_folder = config.get("data_folder", r"./data/v1_a.csv")
-        self.img_size = config.get("img_size", (28, 28))
+        # self.img_size = config.get("img_size", (28, 28))
 
-        self.dim_input = np.prod(self.img_size)
+        # self.dim_input = np.prod(self.img_size)
+        self.dim_input = 2925
         self.dim_output = self.num_classes
 
-        character_folders = [
-            os.path.join(data_folder, family, character)
-            for family in os.listdir(data_folder)
-            if os.path.isdir(os.path.join(data_folder, family))
-            for character in os.listdir(os.path.join(data_folder, family))
-            if os.path.isdir(os.path.join(data_folder, family, character))
-        ]
+        # character_folders = [
+        #     os.path.join(data_folder, family, character)
+        #     for family in os.listdir(data_folder)
+        #     if os.path.isdir(os.path.join(data_folder, family))
+        #     for character in os.listdir(os.path.join(data_folder, family))
+        #     if os.path.isdir(os.path.join(data_folder, family, character))
+        # ]
 
         self.df = read_csv(data_folder)
-        self.names_labels = self.df['golden_label'].unique()
-        self.num_classes = self.df['golden_label'].nunique()
+        self.names_labels = self.df['golden_label'].unique().tolist()
+        # self.num_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
 
         random.seed(1)
-        random.shuffle(character_folders)
-        num_val = 100
-        num_train = 1100
-        self.metatrain_character_folders = character_folders[:num_train]
-        self.metaval_character_folders = character_folders[num_train : num_train + num_val]
-        self.metatest_character_folders = character_folders[num_train + num_val :]
+        # random.shuffle(character_folders)
+        # num_val = 100
+        # num_train = 1100
+        # self.metatrain_character_folders = character_folders[:num_train]
+        # self.metaval_character_folders = character_folders[num_train : num_train + num_val]
+        # self.metatest_character_folders = character_folders[num_train + num_val :]
 
         self.train_set= self.df.sample(frac=0.8,random_state=200)
         validation_test = self.df.drop(self.train_set.index)
@@ -147,20 +150,33 @@ class DataGenerator(IterableDataset):
 
         #############################
         #### YOUR CODE GOES HERE ####
-        sample_field = self.folders.sample()
-
-        sample_characters = random.sample(self.folders, self.num_classes)
+        sample_fields = random.sample(self.names_labels, self.num_classes)
         labels = np.eye(self.num_classes)
+        fields_labels_map ={k:v for k, v in zip(sample_fields, labels)} 
         k = self.num_samples_per_class-1
-        sample_set = get_images(sample_characters, labels, nb_samples=k, shuffle=False)
-        query_set = get_images(sample_characters, labels, nb_samples=1, shuffle=True)
+        n = self.num_classes
+
+        sample_fields_df = self.df[self.df["golden_label"].isin(sample_fields)]
+        sample_fields_df["labels"] = sample_fields_df["golden_label"].map(fields_labels_map)
+
+        sample_df = sample_fields_df.groupby("golden_label").apply(lambda group: group.head(k)).reset_index(drop="first")
+        index_ = [i + k*j for i in range(k) for j in range(n)]
+        sample_df = sample_df.reindex(index_)
+        sample_set = [(f, l) for f, l in zip(sample_df["feature"].tolist(), sample_df["labels"].tolist())]
+
+        query_df = sample_fields_df.groupby("golden_label").apply(lambda group: group.tail(1)).reset_index(drop="first")
+        query_set = [(f, l) for f, l in zip(query_df["feature"].tolist(), query_df["labels"].tolist())]
+        random.shuffle(query_set)
+        
+        # sample_set = get_images(sample_fields, labels, nb_samples=k, shuffle=False)
+        # query_set = get_images(sample_fields, labels, nb_samples=1, shuffle=True)
         sample_set.extend(query_set)
 
         images = []
         labels = []
-        for label, image_file in sample_set:
-            labels.append(label)    
-            images.append(self.image_file_to_array(image_file, self.dim_input))
+        for image_file, label in sample_set:
+            labels.extend(label)    
+            images.extend(image_file)
 
         images = torch.from_numpy(np.array(images)).float()
         labels = torch.from_numpy(np.array(labels)).long()
@@ -212,6 +228,8 @@ def read_csv(v1_csv_file=r"./data/v1_a.csv")->pd.DataFrame:
 
     mc.MoveToLast(df, 'golden_label')
     df['golden_label'] = [df['golden_label'][i][3:-2] for i in range(df.shape[0])]
+
+    df["feature"] = df[feature_cols].sum(axis=1)
 
     return df
 
