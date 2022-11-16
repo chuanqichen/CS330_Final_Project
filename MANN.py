@@ -7,7 +7,8 @@ import math
 import numpy as np
 import torch.nn.functional as F
 from torch import nn, Tensor
-from load_data import DataGenerator
+#from load_data import DataGenerator
+from load_csv import DataGenerator
 from google_drive_downloader import GoogleDriveDownloader as gdd
 from torch.utils.tensorboard import SummaryWriter
 import torchvision

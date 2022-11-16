@@ -12,7 +12,7 @@ import unittest
 import argparse
 
 
-def get_lands(paths, labels, nb_samples=None, shuffle=True):
+def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     """
     Takes a set of character folders and labels and returns paths to image files
     paired with labels.
@@ -24,17 +24,19 @@ def get_lands(paths, labels, nb_samples=None, shuffle=True):
         List of (label, image_path) tuples
     """
     if nb_samples is not None:
-        sampler = lambda x: random.sample(x, nb_samples)
+        #sampler = lambda x: random.sample(x, nb_samples)
+        sampler = lambda x: x.sample(nb_samples).values
     else:
-        sampler = lambda x: x
-    images_labels = [
-        (i, os.path.join(path, image))
-        for i, path in zip(labels, paths)
-        for image in sampler(os.listdir(path))
+        #sampler = lambda x: x
+        sampler = lambda x: x.sample(1)
+    lands_labels = [
+        (i, land)
+        for i, pd in zip(sample_lands, pd_sample_lands)
+        for land in sampler(pd)
     ]
     if shuffle:
-        random.shuffle(images_labels)
-    return images_labels
+        random.shuffle(lands_labels)
+    return lands_labels
 
 
 def get_images(paths, labels, nb_samples=None, shuffle=True):
@@ -88,14 +90,14 @@ class DataGenerator(IterableDataset):
         self.num_classes = num_classes
 
         data_folder = config.get("data_folder", r"./data/v1_a.csv")
-        self.img_size = config.get("img_size", (28, 28))
+        self.img_size = config.get("img_size", (65, 45))
 
         self.dim_input = np.prod(self.img_size)
         self.dim_output = self.num_classes
 
         self.df = read_csv(data_folder)
         self.names_labels = self.df['golden_label'].unique()
-        self.num_classes = self.df['golden_label'].nunique()
+        self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
 
         random.seed(1)
@@ -117,6 +119,18 @@ class DataGenerator(IterableDataset):
             self.folders = self.validation_set
         else:
             self.folders = self.test_set
+
+    def fields_to_array(self, land_fields, dim_input):
+        """
+        Takes an image path and returns numpy array
+        Args:
+            dim_input: Flattened shape of image
+        Returns:
+            1 channel image
+        """
+        image = np.concatenate(land_fields[:-1])
+        return image
+
 
     def image_file_to_array(self, filename, dim_input):
         """
@@ -163,21 +177,21 @@ class DataGenerator(IterableDataset):
 
         #############################
         #### YOUR CODE GOES HERE ####
-        sample_lands = random.sample(self.names_labels, self.num_classes)
+        sample_lands = np.random.choice(self.names_labels, self.num_classes)
 
-        pd = self.folders['golden_label'].isin(sample_lands)
+        pd_sample_lands = [self.folders.loc[self.folders['golden_label']==land] for land in sample_lands ]
 
         labels = np.eye(self.num_classes)
         k = self.num_samples_per_class-1
-        sample_set = get_lands(pd, sample_lands, labels, nb_samples=k, shuffle=False)
-        query_set = get_lands(pd, sample_lands, labels, nb_samples=1, shuffle=True)
+        sample_set = get_lands(pd_sample_lands, labels, nb_samples=k, shuffle=False)
+        query_set = get_lands(pd_sample_lands, labels, nb_samples=1, shuffle=True)
         sample_set.extend(query_set)
 
         images = []
         labels = []
-        for label, image_file in sample_set:
+        for label, land_fields in sample_set:
             labels.append(label)    
-            images.append(self.image_file_to_array(image_file, self.dim_input))
+            images.append(self.fields_to_array(land_fields, self.dim_input))
 
         images = torch.from_numpy(np.array(images)).float()
         labels = torch.from_numpy(np.array(labels)).long()
@@ -238,7 +252,7 @@ class TestLoadCSV(unittest.TestCase):
         parser = argparse.ArgumentParser()
         parser.add_argument("--num_classes", type=int, default=5)
         parser.add_argument("--num_shot", type=int, default=1)
-        parser.add_argument("--num_workers", type=int, default=4)
+        parser.add_argument("--num_workers", type=int, default=1)
         parser.add_argument("--eval_freq", type=int, default=100)
         parser.add_argument("--meta_batch_size", type=int, default=128)
         parser.add_argument("--hidden_dim", type=int, default=128)
@@ -247,7 +261,7 @@ class TestLoadCSV(unittest.TestCase):
         parser.add_argument("--train_steps", type=int, default=25000)
         parser.add_argument("--image_caching", type=bool, default=True)
         parser.add_argument("--data_folder", type=str, help="csv file name or data folders")
-        config = parser.parse_known_args()
+        config = parser.parse_args()
         return config
     
     def test_load_csv_success(self):
@@ -261,7 +275,7 @@ class TestLoadCSV(unittest.TestCase):
         print(names_labels)
 
     def test_data_generator_success(self):
-        config = TestLoadCSV.get_config()[0]
+        config = TestLoadCSV.get_config()
         if torch.cuda.is_available():
             device = torch.device("cuda")
         else:
