@@ -25,7 +25,7 @@ def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     """
     if nb_samples is not None:
         #sampler = lambda x: random.sample(x, nb_samples)
-        sampler = lambda x: x.sample(nb_samples).values
+        sampler = lambda x: x.sample(nb_samples, replace=True).values
     else:
         #sampler = lambda x: x
         sampler = lambda x: x.sample(1)
@@ -37,32 +37,6 @@ def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     if shuffle:
         random.shuffle(lands_labels)
     return lands_labels
-
-
-def get_images(paths, labels, nb_samples=None, shuffle=True):
-    """
-    Takes a set of character folders and labels and returns paths to image files
-    paired with labels.
-    Args:
-        paths: A list of character folders
-        labels: List or numpy array of same length as paths
-        nb_samples: Number of images to retrieve per character
-    Returns:
-        List of (label, image_path) tuples
-    """
-    if nb_samples is not None:
-        sampler = lambda x: random.sample(x, nb_samples)
-    else:
-        sampler = lambda x: x
-    images_labels = [
-        (i, os.path.join(path, image))
-        for i, path in zip(labels, paths)
-        for image in sampler(os.listdir(path))
-    ]
-    if shuffle:
-        random.shuffle(images_labels)
-    return images_labels
-
 
 class DataGenerator(IterableDataset):
     """
@@ -129,26 +103,6 @@ class DataGenerator(IterableDataset):
             1 channel image
         """
         image = np.concatenate(land_fields[:-1])
-        return image
-
-
-    def image_file_to_array(self, filename, dim_input):
-        """
-        Takes an image path and returns numpy array
-        Args:
-            filename: Image filename
-            dim_input: Flattened shape of image
-        Returns:
-            1 channel image
-        """
-        if self.image_caching and (filename in self.stored_images):
-            return self.stored_images[filename]
-        image = imageio.imread(filename)  # misc.imread(filename)
-        image = image.reshape([dim_input])
-        image = image.astype(np.float32) / 255.0
-        image = 1.0 - image
-        if self.image_caching:
-            self.stored_images[filename] = image
         return image
 
     def _sample(self):
