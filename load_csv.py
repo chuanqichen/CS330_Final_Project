@@ -8,6 +8,8 @@ import imageio
 import csv
 import pandas as pd
 import movecolumn as mc
+import warnings
+warnings.filterwarnings("ignore")
 
 def get_images(paths, labels, nb_samples=None, shuffle=True):
     """
@@ -68,30 +70,17 @@ class DataGenerator(IterableDataset):
         self.dim_input = 2925
         self.dim_output = self.num_classes
 
-        # character_folders = [
-        #     os.path.join(data_folder, family, character)
-        #     for family in os.listdir(data_folder)
-        #     if os.path.isdir(os.path.join(data_folder, family))
-        #     for character in os.listdir(os.path.join(data_folder, family))
-        #     if os.path.isdir(os.path.join(data_folder, family, character))
-        # ]
-
         self.df = read_csv(data_folder)
         self.names_labels = self.df['golden_label'].unique().tolist()
         # self.num_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
 
         random.seed(1)
-        # random.shuffle(character_folders)
         # num_val = 100
         # num_train = 1100
-        # self.metatrain_character_folders = character_folders[:num_train]
-        # self.metaval_character_folders = character_folders[num_train : num_train + num_val]
-        # self.metatest_character_folders = character_folders[num_train + num_val :]
-
-        self.train_set= self.df.sample(frac=0.8,random_state=200)
+        self.train_set= self.df.sample(frac=0.8)
         validation_test = self.df.drop(self.train_set.index)
-        self.validation_set = validation_test.sample(frac=0.5, random_state=200)
+        self.validation_set = validation_test.sample(frac=0.5)
         self.test_set = validation_test.drop(self.validation_set.index)
 
         self.device = device
@@ -158,6 +147,7 @@ class DataGenerator(IterableDataset):
 
         sample_fields_df = self.df[self.df["golden_label"].isin(sample_fields)]
         sample_fields_df["labels"] = sample_fields_df["golden_label"].map(fields_labels_map)
+        sample_fields_df = sample_fields_df.groupby('golden_label').apply(lambda x: x.sample(k+1)).reset_index(drop=True)
 
         sample_df = sample_fields_df.groupby("golden_label").apply(lambda group: group.head(k)).reset_index(drop="first")
         index_ = [i + k*j for i in range(k) for j in range(n)]
@@ -207,9 +197,9 @@ def read_csv(v1_csv_file=r"./data/v1_a.csv")->pd.DataFrame:
     df = df.iloc[: , 1:]
 
     columns_to_drop = ['pixel_x', 'tile_height', 'CLOUD_MASK_PNG/time_secs', 'SENTINEL2/time_secs','tile_y', 
-                    'SENTINEL2/image_path', 'tile_width', 'field_id', 'CLOUD_MASK_PNG/image_path', 'tile_x', 
-                    'county_fips_code', 'zoom_level', 'CLOUD_MASK_PNG/1', 'pixel_y', 'SERENUS_GEOTIFF/image_path', 
-                    'SERENUS_GEOTIFF/time_secs']    
+                       'SENTINEL2/image_path', 'tile_width', 'field_id', 'CLOUD_MASK_PNG/image_path', 'tile_x', 
+                       'county_fips_code', 'zoom_level', 'CLOUD_MASK_PNG/1', 'pixel_y', 'SERENUS_GEOTIFF/image_path', 
+                       'SERENUS_GEOTIFF/time_secs']    
     df.drop(columns=columns_to_drop, inplace=True)   
     columns = df.columns
     
