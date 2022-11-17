@@ -78,7 +78,7 @@ class DataGenerator(IterableDataset):
         num_val = 100
         num_train = 1100
 
-        self.train_set= self.df.sample(frac=0.8,random_state=200)
+        self.train_set= self.df.sample(frac=0.9,random_state=200)
         validation_test = self.df.drop(self.train_set.index)
         self.validation_set = validation_test.sample(frac=0.5, random_state=200)
         self.test_set = validation_test.drop(self.validation_set.index)
@@ -102,7 +102,8 @@ class DataGenerator(IterableDataset):
         Returns:
             1 channel image
         """
-        image = np.concatenate(land_fields[:-1])
+        #image = np.concatenate(land_fields[:-1])
+        image = np.concatenate(np.vstack(land_fields[:-1]).T)
         return image
 
     def _sample(self):
