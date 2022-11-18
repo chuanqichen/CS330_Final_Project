@@ -31,7 +31,9 @@ class MANN(nn.Module):
         self.num_classes = num_classes
         self.samples_per_class = samples_per_class
 
-        self.layer1 = torch.nn.LSTM(num_classes + 2925, hidden_dim, batch_first=True)
+        self.layer0 = torch.nn.LSTM(39, 1, batch_first=True)
+        self.layer1 = torch.nn.LSTM(num_classes + 75 #2925/39 
+                                    ,hidden_dim, batch_first=True)
         self.layer2 = torch.nn.LSTM(hidden_dim, num_classes, batch_first=True)
         initialize_weights(self.layer1)
         initialize_weights(self.layer2)
@@ -51,8 +53,11 @@ class MANN(nn.Module):
                      input_images.shape[2], input_images.shape[3]
         labels = torch.clone(input_labels)
         labels[:, K, :] = 0  # set the query set label to be 0 
+        input_images = input_images.reshape(B, (K+1)*N*75, 39)
+        input_images, _ = self.layer0(input_images)
+        input_images = input_images.reshape(B, (K+1), N, 75)        
         x = torch.cat((input_images, labels), axis=3) 
-        x = x.reshape(B, (K+1)*N, N+I) 
+        x = x.reshape(B, (K+1)*N, N+75) 
         x, _ = self.layer1(x)
         x, _ = self.layer2(x)        
         x = x.reshape(B, K+1, N, N)
