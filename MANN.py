@@ -93,6 +93,14 @@ def train_step(images, labels, model, optim, eval=False):
         optim.step()
     return predictions.detach(), loss.detach()
 
+def compute_acc(prediction, l, config):
+    prediction = torch.reshape(
+        prediction, [-1, config.num_shot + 1, config.num_classes, config.num_classes]
+    )
+    prediction = torch.argmax(prediction[:, -1, :, :], axis=2)
+    l = torch.argmax(l[:, -1, :, :], axis=2)
+    acc = prediction.eq(l).sum().item() / (config.meta_batch_size * config.num_classes)
+    return acc
 
 def main(config):
     print(config)
@@ -159,32 +167,28 @@ def main(config):
         t1 = time.time()
 
         ## Train
-        _, ls = train_step(i, l, model, optim)
+        pred, ls = train_step(i, l, model, optim)
         t2 = time.time()
         writer.add_scalar("Loss/train", ls, step)
         times.append([t1 - t0, t2 - t1])
 
         ## Evaluate
         if (step + 1) % config.eval_freq == 0:
+            train_acc = compute_acc(pred, l, config)
             print("*" * 5 + "Iter " + str(step + 1) + "*" * 5)
-            i, l = next(test_loader)
-            i, l = i.to(device), l.to(device)
-            pred, tls = train_step(i, l, model, optim, eval=True)
+            i, tl = next(test_loader)
+            i, tl = i.to(device), tl.to(device)
+            tpred, tls = train_step(i, tl, model, optim, eval=True)
             print("Train Loss:", ls.cpu().numpy(), "Test Loss:", tls.cpu().numpy())
             writer.add_scalar("Loss/test", tls, step)
-            pred = torch.reshape(
-                pred, [-1, config.num_shot + 1, config.num_classes, config.num_classes]
-            )
-            pred = torch.argmax(pred[:, -1, :, :], axis=2)
-            l = torch.argmax(l[:, -1, :, :], axis=2)
-            acc = pred.eq(l).sum().item() / (config.meta_batch_size * config.num_classes)
-            print("Test Accuracy", acc)
-            writer.add_scalar("Accuracy/test", acc, step)
+            test_acc = compute_acc(tpred, tl, config)
+            print("Train Accuracy:", train_acc, "\tTest Accuracy", test_acc)
+            writer.add_scalar("Accuracy/train", train_acc, step)
+            writer.add_scalar("Accuracy/test", test_acc, step)
 
             times = np.array(times)
             print(f"Sample time {times[:, 0].mean()} Train time {times[:, 1].mean()}")
             times = []
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
