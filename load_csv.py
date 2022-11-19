@@ -75,10 +75,8 @@ class DataGenerator(IterableDataset):
         self.num_data = self.df.shape[0]
 
         random.seed(1)
-        num_val = 100
-        num_train = 1100
-
-        self.train_set= self.df.sample(frac=0.9,random_state=200)
+        np.random.shuffle(self.df.values)
+        self.train_set= self.df.sample(frac=0.8,random_state=200)
         validation_test = self.df.drop(self.train_set.index)
         self.validation_set = validation_test.sample(frac=0.5, random_state=200)
         self.test_set = validation_test.drop(self.validation_set.index)

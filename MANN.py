@@ -104,6 +104,8 @@ def compute_acc(prediction, l, config):
 
 def main(config):
     print(config)
+    log_dir = config.log_dir    
+    os.makedirs(log_dir, exist_ok=True)        
     random.seed(config.random_seed)
     np.random.seed(config.random_seed)
     if torch.cuda.is_available():
@@ -111,8 +113,8 @@ def main(config):
     else:
         device = torch.device("cpu")
 
-    writer = SummaryWriter(
-        "runs/classes"+str(config.num_classes)+ "_shots" +str(config.num_shot)+
+    writer = SummaryWriter(log_dir=log_dir+
+        "classes"+str(config.num_classes)+ "_shots" +str(config.num_shot)+
         "_hdim" + str(config.hidden_dim) + "_learning_rate_" +str(config.learning_rate) 
         + "_run" + str(config.random_seed)
     )
@@ -192,6 +194,8 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--log_dir', type=str, default="runs/",
+                        help='directory to save to or load from')        
     parser.add_argument("--num_classes", type=int, default=5)
     parser.add_argument("--num_shot", type=int, default=1)
     parser.add_argument("--num_workers", type=int, default=4)
