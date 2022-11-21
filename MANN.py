@@ -35,6 +35,7 @@ class MANN(nn.Module):
         self.layer1 = torch.nn.LSTM(num_classes + 75 #2925/39 
                                     ,hidden_dim, batch_first=True)
         self.layer2 = torch.nn.LSTM(hidden_dim, num_classes, batch_first=True)
+        initialize_weights(self.layer0)
         initialize_weights(self.layer1)
         initialize_weights(self.layer2)
 

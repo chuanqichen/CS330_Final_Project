@@ -11,3 +11,5 @@ python MANN.py --num_shot 1 --num_classes 3  --learning_rate 1e-5 &
 
 python MANN.py --num_shot 1 --num_classes 3  --hidden_dim 256 & 
 python MANN.py --num_shot 1 --num_classes 3  --hidden_dim 8 & 
+
+python maml.py --num_way 2 --num_support 1 --num_query 1 &

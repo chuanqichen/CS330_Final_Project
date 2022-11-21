@@ -11,6 +11,18 @@ import movecolumn as mc
 import unittest
 import argparse
 
+def fields_to_array(land_fields):
+    """
+    Takes an image path and returns numpy array
+    Args:
+    dim_input: Flattened shape of image
+    Returns:
+    1 channel image
+    """
+    #image = np.concatenate(land_fields[:-1])
+    image = np.concatenate(np.vstack(land_fields[:-1]).T)
+    return image
+
 
 def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     """
@@ -92,18 +104,6 @@ class DataGenerator(IterableDataset):
         else:
             self.folders = self.test_set
 
-    def fields_to_array(self, land_fields, dim_input):
-        """
-        Takes an image path and returns numpy array
-        Args:
-            dim_input: Flattened shape of image
-        Returns:
-            1 channel image
-        """
-        #image = np.concatenate(land_fields[:-1])
-        image = np.concatenate(np.vstack(land_fields[:-1]).T)
-        return image
-
     def _sample(self):
         """
         Samples a batch for training, validation, or testing
@@ -144,7 +144,7 @@ class DataGenerator(IterableDataset):
         labels = []
         for label, land_fields in sample_set:
             labels.append(label)    
-            images.append(self.fields_to_array(land_fields, self.dim_input))
+            images.append(fields_to_array(land_fields))
 
         images = torch.from_numpy(np.array(images)).float()
         labels = torch.from_numpy(np.array(labels)).long()

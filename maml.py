@@ -10,19 +10,31 @@ import torch.nn.functional as F
 from torch import autograd
 from torch.utils import tensorboard
 
-import omniglot
+#import omniglot
+import load_crop
 import util
+from load_crop import fields_to_array
 
 NUM_INPUT_CHANNELS = 1
-NUM_HIDDEN_CHANNELS = 64
+NUM_HIDDEN_CHANNELS = 128 #64
 KERNEL_SIZE = 3
-NUM_CONV_LAYERS = 4
+NUM_CONV_LAYERS = 2 #4
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SUMMARY_INTERVAL = 10
 SAVE_INTERVAL = 100
 LOG_INTERVAL = 10
 VAL_INTERVAL = LOG_INTERVAL * 5
 NUM_TEST_TASKS = 600
+
+def initialize_weights(model):
+    if type(model) in [nn.Linear]:
+        nn.init.xavier_uniform_(model.weight)
+        nn.init.zeros_(model.bias)
+    elif type(model) in [nn.LSTM, nn.RNN, nn.GRU]:
+        nn.init.orthogonal_(model.weight_hh_l0)
+        nn.init.xavier_uniform_(model.weight_ih_l0)
+        nn.init.zeros_(model.bias_hh_l0)
+        nn.init.zeros_(model.bias_ih_l0)
 
 
 class MAML:
@@ -62,6 +74,10 @@ class MAML:
         meta_parameters = {}
 
         # construct feature extractor
+
+        self.lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True)        
+        x = torch.tensor(x, dtype=torch.float32).reshape([1, 65, 45])
+        
         in_channels = NUM_INPUT_CHANNELS
         for i in range(NUM_CONV_LAYERS):
             meta_parameters[f'conv{i}'] = nn.init.xavier_uniform_(
@@ -445,7 +461,7 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_train = omniglot.get_omniglot_dataloader(
+        dataloader_train = load_crop.get_omniglot_dataloader(
             'train',
             args.batch_size,
             args.num_way,
@@ -453,7 +469,7 @@ def main(args):
             args.num_query,
             num_training_tasks
         )
-        dataloader_val = omniglot.get_omniglot_dataloader(
+        dataloader_val = load_crop.get_omniglot_dataloader(
             'val',
             args.batch_size,
             args.num_way,
@@ -473,7 +489,7 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_test = omniglot.get_omniglot_dataloader(
+        dataloader_test = load_crop.get_omniglot_dataloader(
             'test',
             1,
             args.num_way,
