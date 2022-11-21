@@ -1,4 +1,4 @@
-"""Implementation of prototypical networks for Omniglot."""
+"""Implementation of prototypical networks for load_crop."""
 
 import argparse
 import os
@@ -9,7 +9,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils import tensorboard
 
-import omniglot
+import load_crop
 import util
 
 NUM_INPUT_CHANNELS = 1
@@ -23,6 +23,15 @@ PRINT_INTERVAL = 10
 VAL_INTERVAL = PRINT_INTERVAL * 5
 NUM_TEST_TASKS = 600
 
+def initialize_weights(model):
+    if type(model) in [nn.Linear]:
+        nn.init.xavier_uniform_(model.weight)
+        nn.init.zeros_(model.bias)
+    elif type(model) in [nn.LSTM, nn.RNN, nn.GRU]:
+        nn.init.orthogonal_(model.weight_hh_l0)
+        nn.init.xavier_uniform_(model.weight_ih_l0)
+        nn.init.zeros_(model.bias_hh_l0)
+        nn.init.zeros_(model.bias_ih_l0)
 
 class ProtoNetNetwork(nn.Module):
     """Container for ProtoNet weights and image-to-latent computation."""
@@ -42,6 +51,10 @@ class ProtoNetNetwork(nn.Module):
         """
         super().__init__()
         layers = []
+        self.lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True,
+                                        device=DEVICE)
+        initialize_weights(self.lstm_layer)
+        
         in_channels = NUM_INPUT_CHANNELS
         for _ in range(NUM_CONV_LAYERS):
             layers.append(
@@ -64,14 +77,17 @@ class ProtoNetNetwork(nn.Module):
         """Computes the latent representation of a batch of images.
 
         Args:
-            images (Tensor): batch of Omniglot images
+            images (Tensor): batch of load_crop images
                 shape (num_images, channels, height, width)
 
         Returns:
             a Tensor containing a batch of latent representations
                 shape (num_images, latents)
         """
-        return self._layers(images)
+        x, _ = self.lstm_layer(images)
+        x = x.reshape([-1, 1, 65, 45])        
+        return self._layers(x)
+        #return self._layers(images)
 
 
 class ProtoNet:
@@ -100,7 +116,7 @@ class ProtoNet:
 
         Args:
             task_batch (tuple[Tensor, Tensor, Tensor, Tensor]):
-                batch of tasks from an Omniglot DataLoader
+                batch of tasks from an load_crop DataLoader
 
         Returns:
             a Tensor containing mean ProtoNet loss over the batch
@@ -290,7 +306,9 @@ class ProtoNet:
 def main(args):
     log_dir = args.log_dir
     if log_dir is None:
-        log_dir = f'./logs/protonet/omniglot.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.lr:{args.learning_rate}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
+        log_dir = f'./logs/protonet/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.lr:{args.learning_rate}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
+    else:
+        log_dir += f'/protonet/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.lr:{args.learning_rate}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
     print(f'log_dir: {log_dir}')
     writer = tensorboard.SummaryWriter(log_dir=log_dir)
 
@@ -310,7 +328,7 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_train = omniglot.get_omniglot_dataloader(
+        dataloader_train = load_crop.get_omniglot_dataloader(
             'train',
             args.batch_size,
             args.num_way,
@@ -318,7 +336,7 @@ def main(args):
             args.num_query,
             num_training_tasks
         )
-        dataloader_val = omniglot.get_omniglot_dataloader(
+        dataloader_val = load_crop.get_omniglot_dataloader(
             'val',
             args.batch_size,
             args.num_way,
@@ -338,7 +356,7 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_test = omniglot.get_omniglot_dataloader(
+        dataloader_test = load_crop.get_omniglot_dataloader(
             'test',
             1,
             args.num_way,
