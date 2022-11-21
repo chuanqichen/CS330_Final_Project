@@ -75,9 +75,10 @@ class MAML:
 
         # construct feature extractor
 
-        self.lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True)        
-        x = torch.tensor(x, dtype=torch.float32).reshape([1, 65, 45])
-        
+        self.lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True,
+                                        device=DEVICE)
+        initialize_weights(self.lstm_layer)
+        #meta_parameters['lstm0'] = self.lstm_layer.parameters()
         in_channels = NUM_INPUT_CHANNELS
         for i in range(NUM_CONV_LAYERS):
             meta_parameters[f'conv{i}'] = nn.init.xavier_uniform_(
@@ -147,7 +148,9 @@ class MAML:
             a Tensor consisting of a batch of logits
                 shape (num_images, classes)
         """
-        x = images
+        #x = images
+        x, _ = self.lstm_layer(images)
+        x = x.reshape([-1, 1, 65, 45])
         for i in range(NUM_CONV_LAYERS):
             x = F.conv2d(
                 input=x,
