@@ -12,10 +12,6 @@ from data_util import read_csv, read_csv_files, fields_to_array
 import unittest
 import argparse
 
-NUM_TRAIN_CLASSES = 840
-NUM_VAL_CLASSES = 80
-NUM_TEST_CLASSES = 320
-NUM_SAMPLES_PER_CLASS = 90
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def load_image(file_path):
@@ -46,6 +42,10 @@ class OmniglotDataset(dataset.Dataset):
 
     _BASE_PATH = './omniglot_resized'
     _GDD_FILE_ID = '1iaSFXIYC3AB8q9K_M-oVMa4pmB7yKMtI'
+    NUM_TRAIN_CLASSES = 840
+    NUM_VAL_CLASSES = 80
+    NUM_TEST_CLASSES = 320
+    NUM_SAMPLES_PER_CLASS = 90
 
     def __init__(self, num_support, num_query, 
                 config={}, 
@@ -58,7 +58,7 @@ class OmniglotDataset(dataset.Dataset):
         """
         super().__init__()
         self.device = device
-        data_folder = config.get("data_folder", r"./data/v1_a.csv")
+        data_folder = config.get("data_folder", r"./data/v1.csv")
         self.img_size = config.get("img_size", (65, 45))        
         self.dim_input = np.prod(self.img_size)
         
@@ -66,6 +66,12 @@ class OmniglotDataset(dataset.Dataset):
         self.names_labels = self.df['golden_label'].unique()
         self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
+        print("total dataset: ", self.df.shape[0])
+        if df.shape[0] > NUM_TRAIN_CLASSES + NUM_VAL_CLASSES + NUM_TEST_CLASSES : 
+            NUM_TRAIN_CLASSES = (int)(0.8*df.shape[0])
+            NUM_VAL_CLASSES  = (int)(0.1*df.shape[0])
+            NUM_TEST_CLASSES = df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
+            NUM_SAMPLES_PER_CLASS = (int)(df.shape[0]/12)
 
         random.seed(1)
         # shuffle dataset 
