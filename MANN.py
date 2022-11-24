@@ -7,7 +7,6 @@ import math
 import numpy as np
 import torch.nn.functional as F
 from torch import nn, Tensor
-#from load_data import DataGenerator
 from load_csv import DataGenerator
 from google_drive_downloader import GoogleDriveDownloader as gdd
 from torch.utils.tensorboard import SummaryWriter
@@ -114,7 +113,7 @@ def main(config):
     else:
         device = torch.device("cpu")
 
-    writer = SummaryWriter(log_dir=log_dir+
+    writer = SummaryWriter(log_dir=log_dir+ "/protonet/"
         "classes"+str(config.num_classes)+ "_shots" +str(config.num_shot)+
         "_hdim" + str(config.hidden_dim) + "_learning_rate_" +str(config.learning_rate) 
         + "_run" + str(config.random_seed)
@@ -207,5 +206,5 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=float, default=1e-3)
     parser.add_argument("--train_steps", type=int, default=25000)
     parser.add_argument("--image_caching", type=bool, default=True)
-    parser.add_argument("--data_folder", type=str, help="csv file name or data folders")
+    parser.add_argument("--data_folder", type=str, help="single csv file name or data folder", default="./data/")
     main(parser.parse_args())

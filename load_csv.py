@@ -10,19 +10,7 @@ import pandas as pd
 import movecolumn as mc
 import unittest
 import argparse
-
-def fields_to_array(land_fields):
-    """
-    Takes an image path and returns numpy array
-    Args:
-    dim_input: Flattened shape of image
-    Returns:
-    1 channel image
-    """
-    #image = np.concatenate(land_fields[:-1])
-    image = np.concatenate(np.vstack(land_fields[:-1]).T)
-    return image
-
+from data_util import read_csv, fields_to_array
 
 def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     """
@@ -75,7 +63,7 @@ class DataGenerator(IterableDataset):
         self.num_samples_per_class = num_samples_per_class
         self.num_classes = num_classes
 
-        data_folder = config.get("data_folder", r"./data/v1_a.csv")
+        data_folder = config.get("data_folder", r"./data/v1.csv")
         self.img_size = config.get("img_size", (65, 45))
 
         self.dim_input = np.prod(self.img_size)
@@ -160,46 +148,7 @@ class DataGenerator(IterableDataset):
         while True:
             yield self._sample()
 
-def replace_char(a):
-    b = ['[', ']']
-    for char in b:
-        a = a.replace(char, "")
-    a = [float(k) for k in a.split(",")]
-    return a
-
-def read_csv(v1_csv_file=r"./data/v1_a.csv")->pd.DataFrame:
-    df = pd.read_csv(v1_csv_file)
-
-    # drop the first column 
-    # df.drop(columns="Field Index", inplace=True)    
-    df = df.iloc[: , 1:]
-
-    columns_to_drop = ['pixel_x', 'tile_height', 'CLOUD_MASK_PNG/time_secs', 'SENTINEL2/time_secs','tile_y', 
-                    'SENTINEL2/image_path', 'tile_width', 'field_id', 'CLOUD_MASK_PNG/image_path', 'tile_x', 
-                    'county_fips_code', 'zoom_level', 'CLOUD_MASK_PNG/1', 'pixel_y', 'SERENUS_GEOTIFF/image_path', 
-                    'SERENUS_GEOTIFF/time_secs']    
-    df.drop(columns=columns_to_drop, inplace=True)   
-    columns = df.columns
-    
-    sentinel2_cols = [col for col in columns if col.startswith("SENTINEL2")]
-    serenus_geotiff_cols = [col for col in columns if col.startswith("SERENUS_GEOTIFF")]
-    feature_cols = sentinel2_cols + serenus_geotiff_cols
-    for column in feature_cols:
-        df[column] = [replace_char(df[column][i]) for i in range(df.shape[0])]
-
-    # normalize certain column features 
-    for column in feature_cols:
-        if column.endswith("ndti") or column.endswith("savi") or column.endswith("ndvi"):
-            continue
-        else:
-            df[column] = [[k/10000 for k in df[column][i]] for i in range(df.shape[0])]
-
-    mc.MoveToLast(df, 'golden_label')
-    df['golden_label'] = [df['golden_label'][i][3:-2] for i in range(df.shape[0])]
-
-    return df
-
-class TestLoadCSV(unittest.TestCase):
+class TestDataGenerator(unittest.TestCase):
     @staticmethod
     def get_config():
         parser = argparse.ArgumentParser()
@@ -213,22 +162,11 @@ class TestLoadCSV(unittest.TestCase):
         parser.add_argument("--learning_rate", type=float, default=1e-3)
         parser.add_argument("--train_steps", type=int, default=25000)
         parser.add_argument("--image_caching", type=bool, default=True)
-        parser.add_argument("--data_folder", type=str, help="csv file name or data folders")
+        parser.add_argument("--data_folder", type=str, help="csv file name or data folders", default=r"./data/v1.csv")
         config = parser.parse_args()
         return config
-    
-    def test_load_csv_success(self):
-        df = read_csv()
-        names_labels = df['golden_label'].unique()
-        print(df.head())
-        train_set= df.sample(frac=0.8,random_state=200)
-        validation_test = df.drop(train_set.index)
-        validation_set = validation_test.sample(frac=0.5, random_state=200)
-        test_set = validation_test.drop(validation_set.index)
-        print(names_labels)
-
-    def test_data_generator_success(self):
-        config = TestLoadCSV.get_config()
+      
+    def _data_generator_one_iteration(self, config):
         if torch.cuda.is_available():
             device = torch.device("cuda")
         else:
@@ -254,6 +192,20 @@ class TestLoadCSV(unittest.TestCase):
         i, l = i.to(device), l.to(device)
         print(i)
         print(l)
+
+    def test_data_generator_file_1_success(self):
+        config = TestDataGenerator.get_config()
+        self._data_generator_one_iteration(config)
+
+    def test_data_generator_file_2_success(self):
+        config = TestDataGenerator.get_config()
+        config.data_folder = r"./data/v1.csv"
+        self._data_generator_one_iteration(config)
+
+    def test_data_generator_file_3_success(self):
+        config = TestDataGenerator.get_config()
+        config.data_folder = r"./data/meta_learning_part_1.csv"
+        self._data_generator_one_iteration(config)
 
 
 if __name__ == '__main__':

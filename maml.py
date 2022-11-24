@@ -508,6 +508,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Train a MAML!')
+    parser.add_argument("--data_folder", type=str, help="single csv file name or data folder", default="./data/")    
     parser.add_argument('--log_dir', type=str, default=None,
                         help='directory to save to or load from')
     parser.add_argument('--num_way', type=int, default=5,

@@ -8,7 +8,7 @@ import imageio
 import numpy as np
 import torch
 from torch.utils.data import dataset, sampler, dataloader
-from load_csv import read_csv, fields_to_array
+from data_util import read_csv, read_csv_files, fields_to_array
 import unittest
 import argparse
 
@@ -62,7 +62,7 @@ class OmniglotDataset(dataset.Dataset):
         self.img_size = config.get("img_size", (65, 45))        
         self.dim_input = np.prod(self.img_size)
         
-        self.df = read_csv(data_folder)
+        self.df = read_csv_files(data_folder)
         self.names_labels = self.df['golden_label'].unique()
         self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
@@ -220,8 +220,7 @@ class TestLoadCSV(unittest.TestCase):
         config = parser.parse_args()
         return config
     
-    def test_load_csv_success(self):
-        df = read_csv()
+    def _load_csv_success(self, df):
         names_labels = df['golden_label'].unique()
         print(df.head())
         train_set= df.sample(frac=0.8,random_state=200)
@@ -229,6 +228,18 @@ class TestLoadCSV(unittest.TestCase):
         validation_set = validation_test.sample(frac=0.5, random_state=200)
         test_set = validation_test.drop(validation_set.index)
         print(names_labels)
+
+    def test_load_csv_success(self):
+        df = read_csv(r"./data/v1.csv")
+        self._load_csv_success(df)
+
+    def test_load_csv2_success(self):
+        df = read_csv(r"./data/meta_learning_part_1.csv")
+        self._load_csv_success(df)
+
+    def test_load_csv3_success(self):
+        df = read_csv_files(r"./data/")
+        self._load_csv_success(df)
 
 if __name__ == '__main__':
     unittest.main()
