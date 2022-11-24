@@ -1,4 +1,4 @@
-"""Dataloading for Omniglot."""
+"""Dataloading for LandCover."""
 import os
 import glob
 import random
@@ -12,10 +12,14 @@ from data_util import read_csv, read_csv_files, fields_to_array
 import unittest
 import argparse
 
+NUM_TRAIN_CLASSES = 840
+NUM_VAL_CLASSES = 80
+NUM_TEST_CLASSES = 320
+NUM_SAMPLES_PER_CLASS = 90
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def load_image(file_path):
-    """Loads and transforms an Omniglot image.
+    """Loads and transforms an LandCover image.
 
     Args:
         file_path (str): file path of image
@@ -31,8 +35,8 @@ def load_image(file_path):
     return x
 
 
-class OmniglotDataset(dataset.Dataset):
-    """Omniglot dataset for meta-learning.
+class LandCoverDataset(dataset.Dataset):
+    """LandCover dataset for meta-learning.
 
     Each element of the dataset is a task. A task is specified with a key,
     which is a tuple of class indices (no particular order). The corresponding
@@ -40,17 +44,10 @@ class OmniglotDataset(dataset.Dataset):
     pairs.
     """
 
-    _BASE_PATH = './omniglot_resized'
-    _GDD_FILE_ID = '1iaSFXIYC3AB8q9K_M-oVMa4pmB7yKMtI'
-    NUM_TRAIN_CLASSES = 840
-    NUM_VAL_CLASSES = 80
-    NUM_TEST_CLASSES = 320
-    NUM_SAMPLES_PER_CLASS = 90
-
     def __init__(self, num_support, num_query, 
                 config={}, 
                 device=torch.device("cpu")):
-        """Inits OmniglotDataset.
+        """Inits LandCoverDataset.
 
         Args:
             num_support (int): number of support examples per class
@@ -58,20 +55,18 @@ class OmniglotDataset(dataset.Dataset):
         """
         super().__init__()
         self.device = device
-        data_folder = config.get("data_folder", r"./data/v1.csv")
-        self.img_size = config.get("img_size", (65, 45))        
-        self.dim_input = np.prod(self.img_size)
+        #self.img_size = config.get("img_size", (65, 45))        
+        self.img_size = (75, 39)
+        self.dim_input = np.prod(self.img_size)  #2925=75*39
         
-        self.df = read_csv_files(data_folder)
+        self.df = read_csv_files(config.data_folder)
         self.names_labels = self.df['golden_label'].unique()
         self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
-        print("total dataset: ", self.df.shape[0])
-        if df.shape[0] > NUM_TRAIN_CLASSES + NUM_VAL_CLASSES + NUM_TEST_CLASSES : 
-            NUM_TRAIN_CLASSES = (int)(0.8*df.shape[0])
-            NUM_VAL_CLASSES  = (int)(0.1*df.shape[0])
-            NUM_TEST_CLASSES = df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
-            NUM_SAMPLES_PER_CLASS = (int)(df.shape[0]/12)
+        NUM_TRAIN_CLASSES = (int)(0.8*self.df.shape[0])
+        NUM_VAL_CLASSES  = (int)(0.1*self.df.shape[0])
+        NUM_TEST_CLASSES = self.df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
+        NUM_SAMPLES_PER_CLASS = (int)(self.df.shape[0]/self.total_classes)
 
         random.seed(1)
         # shuffle dataset 
@@ -129,11 +124,11 @@ class OmniglotDataset(dataset.Dataset):
         return images_support, labels_support, images_query, labels_query
 
 
-class OmniglotSampler(sampler.Sampler):
-    """Samples task specification keys for an OmniglotDataset."""
+class LandCoverSampler(sampler.Sampler):
+    """Samples task specification keys for an LandCoverDataset."""
 
     def __init__(self, split_idxs, num_way, num_tasks):
-        """Inits OmniglotSampler.
+        """Inits LandCoverSampler.
 
         Args:
             split_idxs (range): indices that comprise the
@@ -163,15 +158,17 @@ def identity(x):
     return x
 
 
-def get_omniglot_dataloader(
+def get_dataloader(
         split,
         batch_size,
         num_way,
         num_support,
         num_query,
-        num_tasks_per_epoch
+        num_tasks_per_epoch,
+        config={}, 
+        device=torch.device("cpu")
 ):
-    """Returns a dataloader.DataLoader for Omniglot.
+    """Returns a dataloader.DataLoader for LandCover.
 
     Args:
         split (str): one of 'train', 'val', 'test'
@@ -199,9 +196,9 @@ def get_omniglot_dataloader(
         raise ValueError
 
     return dataloader.DataLoader(
-        dataset=OmniglotDataset(num_support, num_query),
+        dataset=LandCoverDataset(num_support, num_query, config, device),
         batch_size=batch_size,
-        sampler=OmniglotSampler(split_idxs, num_way, num_tasks_per_epoch),
+        sampler=LandCoverSampler(split_idxs, num_way, num_tasks_per_epoch),
         num_workers=8,
         collate_fn=identity,
         pin_memory=torch.cuda.is_available(),
@@ -240,7 +237,7 @@ class TestLoadCSV(unittest.TestCase):
         self._load_csv_success(df)
 
     def test_load_csv2_success(self):
-        df = read_csv(r"./data/meta_learning_part_1.csv")
+        df = read_csv_files(r"./data/meta_learning_part_1.csv")
         self._load_csv_success(df)
 
     def test_load_csv3_success(self):

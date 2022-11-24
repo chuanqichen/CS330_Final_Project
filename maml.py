@@ -1,4 +1,4 @@
-"""Implementation of model-agnostic meta-learning for Omniglot."""
+"""Implementation of model-agnostic meta-learning for LandCover."""
 
 import argparse
 import os
@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from torch import autograd
 from torch.utils import tensorboard
 
-#import omniglot
+#import LandCover
 import load_crop
 import util
 from load_crop import fields_to_array
@@ -139,7 +139,7 @@ class MAML:
         """Computes predicted classification logits.
 
         Args:
-            images (Tensor): batch of Omniglot images
+            images (Tensor): batch of LandCover images
                 shape (num_images, channels, height, width)
             parameters (dict[str, Tensor]): parameters to use for
                 the computation
@@ -219,7 +219,7 @@ class MAML:
         """Computes the MAML loss and metrics on a batch of tasks.
 
         Args:
-            task_batch (tuple): batch of tasks from an Omniglot DataLoader
+            task_batch (tuple): batch of tasks from an LandCover DataLoader
             train (bool): whether we are training or evaluating
 
         Returns:
@@ -439,7 +439,7 @@ def main(args):
     if log_dir is None:
         log_dir = f'./logs/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
     else:
-        log_dir += f'maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
+        log_dir += f'/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
                 
     print(f'log_dir: {log_dir}')
     writer = tensorboard.SummaryWriter(log_dir=log_dir)
@@ -467,21 +467,25 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_train = load_crop.get_omniglot_dataloader(
+        dataloader_train = load_crop.get_dataloader(
             'train',
             args.batch_size,
             args.num_way,
             args.num_support,
             args.num_query,
-            num_training_tasks
+            num_training_tasks,
+            args, 
+            DEVICE
         )
-        dataloader_val = load_crop.get_omniglot_dataloader(
+        dataloader_val = load_crop.get_dataloader(
             'val',
             args.batch_size,
             args.num_way,
             args.num_support,
             args.num_query,
-            args.batch_size * 4
+            args.batch_size * 4,
+            args, 
+            DEVICE            
         )
         maml.train(
             dataloader_train,
@@ -495,13 +499,15 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_test = load_crop.get_omniglot_dataloader(
+        dataloader_test = load_crop.get_dataloader(
             'test',
             1,
             args.num_way,
             args.num_support,
             args.num_query,
-            NUM_TEST_TASKS
+            NUM_TEST_TASKS,
+            args, 
+            DEVICE            
         )
         maml.test(dataloader_test)
 

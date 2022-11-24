@@ -328,21 +328,25 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_train = load_crop.get_omniglot_dataloader(
+        dataloader_train = load_crop.get_dataloader(
             'train',
             args.batch_size,
             args.num_way,
             args.num_support,
             args.num_query,
-            num_training_tasks
+            num_training_tasks,
+            args, 
+            DEVICE
         )
-        dataloader_val = load_crop.get_omniglot_dataloader(
+        dataloader_val = load_crop.get_dataloader(
             'val',
             args.batch_size,
             args.num_way,
             args.num_support,
             args.num_query,
-            args.batch_size * 4
+            args.batch_size * 4,
+            args, 
+            DEVICE
         )
         protonet.train(
             dataloader_train,
@@ -356,13 +360,15 @@ def main(args):
             f'num_support={args.num_support}, '
             f'num_query={args.num_query}'
         )
-        dataloader_test = load_crop.get_omniglot_dataloader(
+        dataloader_test = load_crop.get_dataloader(
             'test',
             1,
             args.num_way,
             args.num_support,
             args.num_query,
-            NUM_TEST_TASKS
+            NUM_TEST_TASKS,
+            args, 
+            DEVICE
         )
         protonet.test(dataloader_test)
 

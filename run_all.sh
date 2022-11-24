@@ -14,6 +14,6 @@ python MANN.py --num_shot 1 --num_classes 3  --hidden_dim 8 &
 
 python maml.py --num_way 2 --num_support 1 --num_query 1 &
 
-CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 10 --num_support 1 --num_query 1 & 
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 10 --num_support 1 --num_query 1  --log_dir ./temp & 
 
-CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 5 --num_support 1 --num_query 1 & 
+CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 10 --num_support 1 --num_query 1  --log_dir ./temp & 

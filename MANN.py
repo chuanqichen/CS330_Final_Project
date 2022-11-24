@@ -113,7 +113,7 @@ def main(config):
     else:
         device = torch.device("cpu")
 
-    writer = SummaryWriter(log_dir=log_dir+ "/protonet/"
+    writer = SummaryWriter(log_dir=log_dir+ "/mann/"
         "classes"+str(config.num_classes)+ "_shots" +str(config.num_shot)+
         "_hdim" + str(config.hidden_dim) + "_learning_rate_" +str(config.learning_rate) 
         + "_run" + str(config.random_seed)
