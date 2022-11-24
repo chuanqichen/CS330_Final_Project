@@ -10,7 +10,7 @@ import pandas as pd
 import movecolumn as mc
 import unittest
 import argparse
-from data_util import read_csv, fields_to_array
+from data_util import read_csv, fields_to_array, read_csv_files
 
 def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     """
@@ -63,13 +63,12 @@ class DataGenerator(IterableDataset):
         self.num_samples_per_class = num_samples_per_class
         self.num_classes = num_classes
 
-        data_folder = config.get("data_folder", r"./data/v1.csv")
-        self.img_size = config.get("img_size", (65, 45))
-
-        self.dim_input = np.prod(self.img_size)
+        data_folder = config.data_folder
+        self.img_size = (75, 39)
+        self.dim_input = np.prod(self.img_size)  #2925=75*39
         self.dim_output = self.num_classes
 
-        self.df = read_csv(data_folder)
+        self.df = read_csv_files(data_folder)
         self.names_labels = self.df['golden_label'].unique()
         self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
