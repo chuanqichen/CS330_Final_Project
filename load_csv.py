@@ -175,6 +175,7 @@ class TestDataGenerator(unittest.TestCase):
             config.num_classes,
             config.num_shot + 1,
             batch_type="train",
+            config=config, 
             device=device,
             cache=config.image_caching,
         )
