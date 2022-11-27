@@ -63,8 +63,8 @@ class LandCoverDataset(dataset.Dataset):
         self.names_labels = self.df['golden_label'].unique()
         self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
-        NUM_TRAIN_CLASSES = (int)(0.8*self.df.shape[0])
-        NUM_VAL_CLASSES  = (int)(0.1*self.df.shape[0])
+        NUM_TRAIN_CLASSES = (int)(0.6*self.df.shape[0])
+        NUM_VAL_CLASSES  = (int)(0.2*self.df.shape[0])
         NUM_TEST_CLASSES = self.df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
         NUM_SAMPLES_PER_CLASS = (int)(self.df.shape[0]/self.total_classes)
 

@@ -320,6 +320,16 @@ class MAML:
                     accuracy_query,
                     i_step
                 )
+                writer.add_scalar(
+                    'train_accuracy/support',
+                    accuracies_support[-1],
+                    i_step
+                )
+                writer.add_scalar(
+                    'train_accuracy/query',
+                    accuracy_query,
+                    i_step
+                )
 
             if i_step % VAL_INTERVAL == 0:
                 losses = []
@@ -367,6 +377,16 @@ class MAML:
                 )
                 writer.add_scalar(
                     'val_accuracy/post_adapt_query',
+                    accuracy_post_adapt_query,
+                    i_step
+                )
+                writer.add_scalar(
+                    'val_accuracy/support',
+                    accuracy_post_adapt_support,
+                    i_step
+                )
+                writer.add_scalar(
+                    'val_accuracy/query',
                     accuracy_post_adapt_query,
                     i_step
                 )
