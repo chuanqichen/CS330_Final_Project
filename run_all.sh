@@ -42,3 +42,9 @@ CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 4 --num_support 1 --num_quer
 CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 3 --num_support 1 --num_query 1 & 
 CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 2 --num_support 1 --num_query 1 & 
 
+
+python protonet.py --test --num_way 2 --num_support 1 --num_query 1 --log_dir ./logs/protonet/crop.way:2.support:1.query:1.lr:0.001.batch_size:16/ --checkpoint_step 4900 --data_folder ./data/meta_learning_part_4.csv
+
+python protonet.py --test --num_way 2 --num_support 1 --num_query 1 --log_dir ./logs/protonet/crop.way:2.support:1.query:1.lr:0.001.batch_size:16/ --checkpoint_step 4900 --data_folder ./data/meta_learning_part_5.csv
+
+python maml.py --test --num_way 2 --num_support 1 --num_query 1 --log_dir ./logs/maml/crop.way:2.support:1.query:1.lr:0.001.batch_size:16/ --checkpoint_step 4900 --data_folder ./data/meta_learning_part_5.csv

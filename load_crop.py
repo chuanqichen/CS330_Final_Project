@@ -65,7 +65,11 @@ class LandCoverDataset(dataset.Dataset):
         self.num_data = self.df.shape[0]
         NUM_TRAIN_CLASSES = (int)(0.8*self.df.shape[0])
         NUM_VAL_CLASSES  = (int)(0.1*self.df.shape[0])
-        NUM_TEST_CLASSES = self.df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
+        self.test = config.test
+        if not config.test:
+            NUM_TEST_CLASSES = self.df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
+        else:
+            NUM_TEST_CLASSES = self.df.shape[0]
         NUM_SAMPLES_PER_CLASS = (int)(self.df.shape[0]/self.total_classes)
 
         random.seed(1)
@@ -105,7 +109,7 @@ class LandCoverDataset(dataset.Dataset):
             sampled_file_paths = np.random.default_rng().choice(
                 pd_sample_lands,
                 size=self._num_support + self._num_query,
-                replace=False
+                replace=False if not self.test else True
             )
             images = [load_image(file_path) for file_path in sampled_file_paths]
 
@@ -188,10 +192,13 @@ def get_dataloader(
             NUM_TRAIN_CLASSES + NUM_VAL_CLASSES
         )
     elif split == 'test':
-        split_idxs = range(
-            NUM_TRAIN_CLASSES + NUM_VAL_CLASSES,
-            NUM_TRAIN_CLASSES + NUM_VAL_CLASSES + NUM_TEST_CLASSES
-        )
+        if not config.test:
+            split_idxs = range(
+                NUM_TRAIN_CLASSES + NUM_VAL_CLASSES,
+                NUM_TRAIN_CLASSES + NUM_VAL_CLASSES + NUM_TEST_CLASSES
+            )
+        else:
+            split_idxs = range(0, NUM_TEST_CLASSES)
     else:
         raise ValueError
 
