@@ -35,6 +35,10 @@ def initialize_weights(model):
         nn.init.xavier_uniform_(model.weight_ih_l0)
         nn.init.zeros_(model.bias_hh_l0)
         nn.init.zeros_(model.bias_ih_l0)
+        model.weight_hh_l0.requires_grad_()
+        model.weight_ih_l0.requires_grad_()
+        model.bias_hh_l0.requires_grad_()
+        model.bias_ih_l0.requires_grad_()
 
 
 class MAML:
@@ -78,7 +82,10 @@ class MAML:
         self.lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True,
                                         device=DEVICE)
         initialize_weights(self.lstm_layer)
-        #meta_parameters['lstm0'] = self.lstm_layer.parameters()
+        meta_parameters['lstm.weight_hh_l0'] = self.lstm_layer.weight_hh_l0
+        meta_parameters['lstm.weight_ih_l0'] = self.lstm_layer.weight_ih_l0
+        meta_parameters['lstm.bias_hh_l0'] = self.lstm_layer.bias_hh_l0
+        meta_parameters['lstm.bias_ih_l0'] = self.lstm_layer.bias_ih_l0
         in_channels = NUM_INPUT_CHANNELS
         for i in range(NUM_CONV_LAYERS):
             meta_parameters[f'conv{i}'] = nn.init.xavier_uniform_(
@@ -458,8 +465,8 @@ def main(args):
     log_dir = args.log_dir
     if log_dir is None:
         log_dir = f'./logs/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
-    #else:
-    #    log_dir += f'/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
+    else:
+        log_dir += f'/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
                 
     print(f'log_dir: {log_dir}')
     writer = tensorboard.SummaryWriter(log_dir=log_dir)
