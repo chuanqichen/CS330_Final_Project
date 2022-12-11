@@ -116,3 +116,8 @@ Accuracy over 600 test tasks: mean 0.279, 95% confidence interval 0.001
 num_way = 6, 0.2 
 Accuracy over 600 test tasks: mean 0.200, 95% confidence interval 0.000
 Accuracy over 600 test tasks: mean 0.204, 95% confidence interval 0.001
+
+
+find ./logs_lstm/ -name 'events.out.tfevents.*' -exec cp -prv '{}' './experiments/' ';'
+shopt -s globstar
+cp --reflink=auto --parents **/events.out.tfevents.* ../experiments/
