@@ -16,9 +16,9 @@ import util
 from load_crop import fields_to_array
 
 NUM_INPUT_CHANNELS = 1
-NUM_HIDDEN_CHANNELS = 128 #64
+NUM_HIDDEN_CHANNELS = 128  #128 #64
 KERNEL_SIZE = 3
-NUM_CONV_LAYERS = 2 #4
+NUM_CONV_LAYERS = 4 #2
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SUMMARY_INTERVAL = 10
 SAVE_INTERVAL = 100
@@ -554,7 +554,7 @@ if __name__ == '__main__':
                         help='outer-loop learning rate')
     parser.add_argument('--batch_size', type=int, default=16,
                         help='number of tasks per outer-loop update')
-    parser.add_argument('--num_train_iterations', type=int, default=5000,
+    parser.add_argument('--num_train_iterations', type=int, default=15000,
                         help='number of outer-loop updates to train for')
     parser.add_argument('--test', default=False, action='store_true',
                         help='train or test')
