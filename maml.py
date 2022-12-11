@@ -9,10 +9,12 @@ from torch import nn
 import torch.nn.functional as F
 from torch import autograd
 from torch.utils import tensorboard
+from torch import _VF
 
 #import LandCover
 import load_crop
 import util
+import math
 from load_crop import fields_to_array
 
 NUM_INPUT_CHANNELS = 1
@@ -26,20 +28,28 @@ LOG_INTERVAL = 10
 VAL_INTERVAL = LOG_INTERVAL * 5
 NUM_TEST_TASKS = 600
 
+def create_lstm_weight(self, device):
+        hidden_size = 2925
+        input_size = 2925
+        param_list = [nn.Parameter(torch.ones((4* hidden_size, input_size)).to(device)), # W_ih
+                      nn.Parameter(torch.ones((4* hidden_size, input_size)).to(device)), # W_hh
+                      nn.Parameter(torch.ones((4* hidden_size)).to(device)), # b_ih
+                      nn.Parameter(torch.ones((4* hidden_size)).to(device))] # b_hh
+        
 def initialize_weights(model):
     if type(model) in [nn.Linear]:
         nn.init.xavier_uniform_(model.weight)
         nn.init.zeros_(model.bias)
     elif type(model) in [nn.LSTM, nn.RNN, nn.GRU]:
-        nn.init.orthogonal_(model.weight_hh_l0)
         nn.init.xavier_uniform_(model.weight_ih_l0)
-        nn.init.zeros_(model.bias_hh_l0)
+        nn.init.orthogonal_(model.weight_hh_l0)
         nn.init.zeros_(model.bias_ih_l0)
+        nn.init.zeros_(model.bias_hh_l0)
         model.weight_hh_l0.requires_grad_()
         model.weight_ih_l0.requires_grad_()
         model.bias_hh_l0.requires_grad_()
         model.bias_ih_l0.requires_grad_()
-
+        return [model.weight_ih_l0, model.weight_hh_l0, model.bias_ih_l0, model.bias_hh_l0]
 
 class MAML:
     """Trains and assesses a MAML."""
@@ -79,13 +89,13 @@ class MAML:
 
         # construct feature extractor
 
-        self.lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True,
+        self.lstm_layer = torch.nn.LSTM(39, 39, batch_first=True,
                                         device=DEVICE)
         initialize_weights(self.lstm_layer)
-        meta_parameters['lstm.weight_hh_l0'] = self.lstm_layer.weight_hh_l0
         meta_parameters['lstm.weight_ih_l0'] = self.lstm_layer.weight_ih_l0
-        meta_parameters['lstm.bias_hh_l0'] = self.lstm_layer.bias_hh_l0
+        meta_parameters['lstm.weight_hh_l0'] = self.lstm_layer.weight_hh_l0
         meta_parameters['lstm.bias_ih_l0'] = self.lstm_layer.bias_ih_l0
+        meta_parameters['lstm.bias_hh_l0'] = self.lstm_layer.bias_hh_l0
         in_channels = NUM_INPUT_CHANNELS
         for i in range(NUM_CONV_LAYERS):
             meta_parameters[f'conv{i}'] = nn.init.xavier_uniform_(
@@ -156,7 +166,20 @@ class MAML:
                 shape (num_images, classes)
         """
         #x = images
-        x, _ = self.lstm_layer(images)
+        #lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True,
+        #                                device=DEVICE)
+        hidden_size = 39 
+        batch_size = images.shape[0]
+        weights = [parameters['lstm.weight_ih_l0'], parameters['lstm.weight_hh_l0'], 
+                   parameters['lstm.bias_hh_l0'], parameters['lstm.bias_ih_l0']]
+                   
+        h_state = (torch.zeros(1, batch_size, hidden_size, device=DEVICE, dtype=torch.float32), 
+                    torch.zeros(1, batch_size, hidden_size, device=DEVICE, dtype=torch.float32))
+        images = images.reshape((-1, 75, 39))
+        with torch.backends.cudnn.flags(enabled=False):
+            result = _VF.lstm(images, h_state, weights, has_biases=True, num_layers=1, dropout=0.0, train=True, bidirectional=False, batch_first=True) 
+        x, h = result[0], result[1:]                    
+        #x, _ = self.lstm_layer(images)
         x = x.reshape([-1, 1, 65, 45])
         for i in range(NUM_CONV_LAYERS):
             x = F.conv2d(
@@ -466,8 +489,9 @@ def main(args):
     if log_dir is None:
         log_dir = f'./logs/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
     else:
-        log_dir += f'/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
-                
+        if "/maml/crop.way:" not in log_dir:
+            log_dir += f'/maml/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.inner_steps:{args.num_inner_steps}.inner_lr:{args.inner_lr}.learn_inner_lrs:{args.learn_inner_lrs}.outer_lr:{args.outer_lr}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long                
+    os.makedirs(log_dir, exist_ok=True)        
     print(f'log_dir: {log_dir}')
     writer = tensorboard.SummaryWriter(log_dir=log_dir)
 

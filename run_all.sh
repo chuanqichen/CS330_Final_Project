@@ -27,17 +27,17 @@ CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 4 --num_support 1 --num_query 1 
 CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 3 --num_support 1 --num_query 1 & 
 CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 2 --num_support 1 --num_query 1 & 
 
-CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 12 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 11 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 10 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 9 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 8 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 7 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 6 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 5 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 4 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 3 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
-CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 2 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 12 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 11 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 10 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 9 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 8 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 7 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 6 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 5 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 4 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 3 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 2 --num_support 1 --num_query 1  --log_dir ./logs_lstm --data_folder ./data/v1.csv &
 
 
 CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 12 --num_support 1 --num_query 1  --log_dir ./temp & 
