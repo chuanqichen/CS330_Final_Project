@@ -35,11 +35,6 @@ def initialize_weights(model):
         nn.init.xavier_uniform_(model.weight_ih_l0)
         nn.init.zeros_(model.bias_hh_l0)
         nn.init.zeros_(model.bias_ih_l0)
-        model.weight_hh_l0.requires_grad_()
-        model.weight_ih_l0.requires_grad_()
-        model.bias_hh_l0.requires_grad_()
-        model.bias_ih_l0.requires_grad_()
-
 
 class MAML:
     """Trains and assesses a MAML."""
@@ -80,12 +75,11 @@ class MAML:
         # construct feature extractor
 
         self.lstm_layer = torch.nn.LSTM(2925, 2925, batch_first=True,
-                                        device=DEVICE)
+                                        device=DEVICE)                        
         initialize_weights(self.lstm_layer)
-        meta_parameters['lstm.weight_hh_l0'] = self.lstm_layer.weight_hh_l0
-        meta_parameters['lstm.weight_ih_l0'] = self.lstm_layer.weight_ih_l0
-        meta_parameters['lstm.bias_hh_l0'] = self.lstm_layer.bias_hh_l0
-        meta_parameters['lstm.bias_ih_l0'] = self.lstm_layer.bias_ih_l0
+        self.lstm_layer.load_state_dict(torch.load('lstm.mdl'))
+        self.lstm_layer.to(DEVICE)
+        #meta_parameters['lstm0'] = self.lstm_layer.parameters()
         in_channels = NUM_INPUT_CHANNELS
         for i in range(NUM_CONV_LAYERS):
             meta_parameters[f'conv{i}'] = nn.init.xavier_uniform_(

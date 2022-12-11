@@ -316,6 +316,7 @@ def main(args):
 
     if args.checkpoint_step > -1:
         protonet.load(args.checkpoint_step)
+        torch.save(protonet._network.lstm_layer.state_dict(), "lstm.mdl")
     else:
         print('Checkpoint loading skipped.')
 
