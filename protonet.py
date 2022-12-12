@@ -307,8 +307,9 @@ def main(args):
     log_dir = args.log_dir
     if log_dir is None:
         log_dir = f'./logs/protonet/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.lr:{args.learning_rate}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
-    #else:
-    #    log_dir += f'/protonet/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.lr:{args.learning_rate}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
+    else:
+        if not args.test: 
+            log_dir += f'/protonet/crop.way:{args.num_way}.support:{args.num_support}.query:{args.num_query}.lr:{args.learning_rate}.batch_size:{args.batch_size}'  # pylint: disable=line-too-long
     print(f'log_dir: {log_dir}')
     writer = tensorboard.SummaryWriter(log_dir=log_dir)
 
