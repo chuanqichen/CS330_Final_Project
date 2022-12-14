@@ -12,10 +12,10 @@ from data_util import read_csv, read_csv_files, fields_to_array
 import unittest
 import argparse
 
-NUM_TRAIN_CLASSES = 840
-NUM_VAL_CLASSES = 80
-NUM_TEST_CLASSES = 320
-NUM_SAMPLES_PER_CLASS = 90
+NUM_TRAIN_CLASSES = 4
+NUM_VAL_CLASSES = 4 
+NUM_TEST_CLASSES = 4 
+NUM_SAMPLES_PER_CLASS = 91
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def load_image(file_path):
@@ -54,6 +54,7 @@ class LandCoverDataset(dataset.Dataset):
             num_query (int): number of query examples per class
         """
         super().__init__()
+        random.seed(1)
         self.device = device
         #self.img_size = config.get("img_size", (65, 45))        
         self.img_size = (75, 39)
@@ -61,18 +62,22 @@ class LandCoverDataset(dataset.Dataset):
         
         self.df = read_csv_files(config.data_folder)
         self.names_labels = self.df['golden_label'].unique()
+        #np.random.shuffle(self.names_labels)
         self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
-        NUM_TRAIN_CLASSES = (int)(0.8*self.df.shape[0])
-        NUM_VAL_CLASSES  = (int)(0.1*self.df.shape[0])
         self.test = config.test
-        if not config.test:
-            NUM_TEST_CLASSES = self.df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
-        else:
-            NUM_TEST_CLASSES = self.df.shape[0]
-        NUM_SAMPLES_PER_CLASS = (int)(self.df.shape[0]/self.total_classes)
+        
+        range
+        
+        #if not config.test:
+            #NUM_TRAIN_CLASSES = (int)(0.8*self.df.shape[0])
+            #NUM_VAL_CLASSES  = (int)(0.1*self.df.shape[0])
+            #NUM_TEST_CLASSES = self.df.shape[0] - NUM_TRAIN_CLASSES - NUM_VAL_CLASSES
+        #else:
+            #NUM_TRAIN_CLASSES = 0
+            #NUM_VAL_CLASSES = 0
+            #NUM_TEST_CLASSES = self.df.shape[0] - NUM_TRAIN_CLASSES
 
-        random.seed(1)
         # shuffle dataset 
         #np.random.shuffle(self.df.values)
         np.random.default_rng(0).shuffle(self.df.values)
@@ -183,27 +188,24 @@ def get_dataloader(
         num_tasks_per_epoch (int): number of tasks before DataLoader is
             exhausted
     """
-
+    dataset=LandCoverDataset(num_support, num_query, config, device)
     if split == 'train':
-        split_idxs = range(NUM_TRAIN_CLASSES)
+        split_idxs = [i for i in range(dataset.df.shape[0]) if dataset.df.iloc[i]['golden_label'] 
+                      in dataset.names_labels[0:NUM_TRAIN_CLASSES]]
     elif split == 'val':
-        split_idxs = range(
-            NUM_TRAIN_CLASSES,
-            NUM_TRAIN_CLASSES + NUM_VAL_CLASSES
-        )
+        split_idxs = [i for i in range(dataset.df.shape[0]) if dataset.df.iloc[i]['golden_label'] 
+                      in dataset.names_labels[NUM_TRAIN_CLASSES:NUM_TRAIN_CLASSES + NUM_VAL_CLASSES]]
     elif split == 'test':
         if not config.test:
-            split_idxs = range(
-                NUM_TRAIN_CLASSES + NUM_VAL_CLASSES,
-                NUM_TRAIN_CLASSES + NUM_VAL_CLASSES + NUM_TEST_CLASSES
-            )
+            split_idxs = [i for i in range(dataset.df.shape[0]) if dataset.df.iloc[i]['golden_label'] 
+                          in dataset.names_labels[NUM_TRAIN_CLASSES + NUM_VAL_CLASSES:]]
         else:
-            split_idxs = range(0, NUM_TEST_CLASSES)
+            split_idxs = range(dataset.df.shape[0])
     else:
         raise ValueError
 
     return dataloader.DataLoader(
-        dataset=LandCoverDataset(num_support, num_query, config, device),
+        dataset=dataset,
         batch_size=batch_size,
         sampler=LandCoverSampler(split_idxs, num_way, num_tasks_per_epoch),
         num_workers=8,

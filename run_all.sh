@@ -39,8 +39,11 @@ CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 4 --num_support 1 --num_query 1 
 CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 3 --num_support 1 --num_query 1  --log_dir ./logs_lstm_conv4 --data_folder ./data/v1.csv &
 CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 2 --num_support 1 --num_query 1  --log_dir ./logs_lstm_conv4 --data_folder ./data/v1.csv &
 
+CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 4 --num_support 1 --num_query 1  --log_dir ./logs_new_temp  --data_folder ./data/v1.csv & 
 
-CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 12 --num_support 1 --num_query 1  --log_dir ./temp & 
+
+CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 4 --num_support 1 --num_query 1  --log_dir ./logs_new_temp  --data_folder ./data/v1.csv & 
+
 CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 12 --num_support 1 --num_query 1 & 
 CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 11 --num_support 1 --num_query 1 & 
 CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 10 --num_support 1 --num_query 1 & 
@@ -58,7 +61,7 @@ python protonet.py --test --num_way 2 --num_support 1 --num_query 1 --log_dir ./
 
 python protonet.py --test --num_way 2 --num_support 1 --num_query 1 --log_dir ./logs/protonet/crop.way:2.support:1.query:1.lr:0.001.batch_size:16/ --checkpoint_step 4900 --data_folder ./data/meta_learning_part_5.csv
 
-python maml.py --test --num_way 2 --num_support 1 --num_query 1 --log_dir ./logs/maml/crop.way:5.support:2.query:1.inner_steps:1.inner_lr:0.4.learn_inner_lrs:False.outer_lr:0.001.batch_size:16/ --checkpoint_step 4900 --data_folder ./data/meta_learning_part_5.csv
+CUDA_VISIBLE_DEVICES=1 python maml.py --test --num_way 2 --num_support 1 --num_query 1 --log_dir ./logs/maml/crop.way:5.support:2.query:1.inner_steps:1.inner_lr:0.4.learn_inner_lrs:False.outer_lr:0.001.batch_size:16/ --checkpoint_step 4900 --data_folder ./data/meta_learning_part_5.csv
 
 
 python protonet.py --test --num_way 2 --num_support 1 --num_query 2 --log_dir ./logs/protonet/crop.way:2.support:1.query:1.lr:0.001.batch_size:16/ --checkpoint_step 4900 --data_folder ./data/meta_learning_part_5.csv
@@ -112,6 +115,9 @@ Accuracy over 600 test tasks: mean 0.240, 95% confidence interval 0.000
 
 python maml.py --test --num_way 5 --num_support 1 --num_query 5 --log_dir ./logs/maml/crop.way:6.support:1.query:1.inner_steps:1.inner_lr:0.4.learn_inner_lrs:False.outer_lr:0.001.batch_size:16/ --checkpoint_step 10000 --data_folder ./data/meta_learning_part_5.csv
 Accuracy over 600 test tasks: mean 0.279, 95% confidence interval 0.001
+
+python maml.py --test --num_way 3 --num_support 1 --num_query 5 --log_dir ./logs_lstm_conv4/maml/crop.way:12.support:1.query:1.inner_steps:1.inner_lr:0.4.learn_inner_lrs:False.outer_lr:0.001.batch_size:16  --checkpoint_step 4000 --data_folder ./data/meta_learning_part_5.csv
+
 
 num_way = 6, 0.2 
 Accuracy over 600 test tasks: mean 0.200, 95% confidence interval 0.000

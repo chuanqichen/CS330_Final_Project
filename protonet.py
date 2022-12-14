@@ -21,7 +21,7 @@ SUMMARY_INTERVAL = 10
 SAVE_INTERVAL = 100
 PRINT_INTERVAL = 10
 VAL_INTERVAL = PRINT_INTERVAL * 5
-NUM_TEST_TASKS = 600
+NUM_TEST_TASKS = 2000 #600
 
 def initialize_weights(model):
     if type(model) in [nn.Linear]:
@@ -252,6 +252,17 @@ class ProtoNet:
 
         Args:
             dataloader_test (DataLoader): loader for test tasks
+        """
+        """
+        for i_step, task_batch in enumerate(
+                dataloader_test,
+                start=0
+        ):
+            print("i_step: ", i_step, "\t start_step:", self._start_train_step)
+            self._optimizer.zero_grad()
+            loss, accuracy_support, accuracy_query = self._step(task_batch)
+            loss.backward()
+            self._optimizer.step()
         """
         accuracies = []
         for task_batch in dataloader_test:
