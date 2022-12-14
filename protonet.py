@@ -253,15 +253,6 @@ class ProtoNet:
         Args:
             dataloader_test (DataLoader): loader for test tasks
         """
-        for i_step, task_batch in enumerate(
-                dataloader_test,
-                start=0
-        ):
-            self._optimizer.zero_grad()
-            loss, accuracy_support, accuracy_query = self._step(task_batch)
-            loss.backward()
-            self._optimizer.step()
-
         accuracies = []
         for task_batch in dataloader_test:
             accuracies.append(self._step(task_batch)[2])
