@@ -127,3 +127,22 @@ Accuracy over 600 test tasks: mean 0.204, 95% confidence interval 0.001
 find ./logs_lstm/ -name 'events.out.tfevents.*' -exec cp -prv '{}' './experiments/' ';'
 shopt -s globstar
 cp --reflink=auto --parents **/events.out.tfevents.* ../experiments/
+
+
+
+
+CUDA_VISIBLE_DEVICES=1 python maml.py --num_way 4 --num_support 1 --num_query 1  --log_dir ./logs_new_lstm_conv4 --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 3 --num_support 1 --num_query 1  --log_dir ./logs_new_lstm_conv4 --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=0 python maml.py --num_way 2 --num_support 1 --num_query 1  --log_dir ./logs_new_lstm_conv4 --data_folder ./data/v1.csv &
+
+CUDA_VISIBLE_DEVICES=0 python protonet.py --num_way 4 --num_support 1 --num_query 1  --log_dir ./logs_new_lstm_conv4 --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 3 --num_support 1 --num_query 1  --log_dir ./logs_new_lstm_conv4 --data_folder ./data/v1.csv &
+CUDA_VISIBLE_DEVICES=1 python protonet.py --num_way 2 --num_support 1 --num_query 1  --log_dir ./logs_new_lstm_conv4 --data_folder ./data/v1.csv &
+
+
+python protonet.py --test --num_way 3 --num_support 1 --num_query 5 --log_dir ./logs_new_lstm_conv4/protonet/crop.way:3.support:1.query:1.lr:0.001.batch_size:16/  --checkpoint_step 900 --data_folder ./data/meta_learning_part_5.csv
+
+
+python maml.py --test --num_way 3 --num_support 1 --num_query 5 --log_dir ./logs_new_lstm_conv4/maml/crop.way:3.support:1.query:1.inner_steps:1.inner_lr:0.4.learn_inner_lrs:False.outer_lr:0.001.batch_size:16  --checkpoint_step 900 --data_folder ./data/meta_learning_part_5.csv
+
+

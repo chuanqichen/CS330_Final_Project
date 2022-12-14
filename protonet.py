@@ -401,7 +401,7 @@ if __name__ == '__main__':
                         help='learning rate for the network')
     parser.add_argument('--batch_size', type=int, default=16,
                         help='number of tasks per outer-loop update')
-    parser.add_argument('--num_train_iterations', type=int, default=5000,
+    parser.add_argument('--num_train_iterations', type=int, default=1000,
                         help='number of outer-loop updates to train for')
     parser.add_argument('--test', default=False, action='store_true',
                         help='train or test')
