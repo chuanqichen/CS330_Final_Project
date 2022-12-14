@@ -12,9 +12,9 @@ from data_util import read_csv, read_csv_files, fields_to_array
 import unittest
 import argparse
 
-NUM_TRAIN_CLASSES = 4
-NUM_VAL_CLASSES = 4 
-NUM_TEST_CLASSES = 4 
+NUM_TRAIN_CLASSES = 6
+NUM_VAL_CLASSES = 6 
+NUM_TEST_CLASSES = 0 
 NUM_SAMPLES_PER_CLASS = 91
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
