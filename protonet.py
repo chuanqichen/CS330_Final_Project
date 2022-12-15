@@ -21,7 +21,7 @@ SUMMARY_INTERVAL = 10
 SAVE_INTERVAL = 100
 PRINT_INTERVAL = 10
 VAL_INTERVAL = PRINT_INTERVAL * 5
-NUM_TEST_TASKS = 1000 #600
+NUM_TEST_TASKS = 3000 #600
 
 def initialize_weights(model):
     if type(model) in [nn.Linear]:

@@ -24,7 +24,7 @@ SUMMARY_INTERVAL = 10
 SAVE_INTERVAL = 100
 LOG_INTERVAL = 10
 VAL_INTERVAL = LOG_INTERVAL * 5
-NUM_TEST_TASKS = 1000 #2000
+NUM_TEST_TASKS = 3000 #2000
 
 def initialize_weights(model):
     if type(model) in [nn.Linear]:
@@ -400,23 +400,17 @@ class MAML:
 
         Args:
             dataloader_test (DataLoader): loader for test tasks
-        """
-
-        """
-        for i_step, task_batch in enumerate(
-                dataloader_test,
-                start=self._start_train_step
-        ):
-            self._optimizer.zero_grad()
-            outer_loss, accuracies_support, accuracy_query = (
-                self._outer_step(task_batch, train=True)
-            )
-            outer_loss.backward()
-            self._optimizer.step()
-        """
+        """            
+        k = 0
         accuracies = []
-        for task_batch in dataloader_test:
-            _, _, accuracy_query = self._outer_step(task_batch, train=False)
+        for i, task_batch in enumerate(dataloader_test):
+            if i<k:
+                self._optimizer.zero_grad()
+            #_, _, accuracy_query = self._outer_step(task_batch, train=False)
+            outer_loss, accuracies_support, accuracy_query = self._outer_step(task_batch, train=(i<k))
+            if i<k:
+                outer_loss.backward()
+                self._optimizer.step()
             accuracies.append(accuracy_query)
         mean = np.mean(accuracies)
         std = np.std(accuracies)

@@ -66,9 +66,7 @@ class LandCoverDataset(dataset.Dataset):
         self.total_classes = self.df['golden_label'].nunique()
         self.num_data = self.df.shape[0]
         self.test = config.test
-        
-        range
-        
+               
         #if not config.test:
             #NUM_TRAIN_CLASSES = (int)(0.8*self.df.shape[0])
             #NUM_VAL_CLASSES  = (int)(0.1*self.df.shape[0])
