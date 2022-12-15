@@ -47,8 +47,6 @@ class MANN(nn.Module):
         Returns:
             [B, K+1, N, N] predictions
         """
-        #############################
-        #### YOUR CODE GOES HERE ####        
         B, K, N, I = input_images.shape[0], input_images.shape[1]-1,\
                      input_images.shape[2], input_images.shape[3]
         labels = torch.clone(input_labels)
@@ -62,7 +60,6 @@ class MANN(nn.Module):
         x, _ = self.layer2(x)        
         x = x.reshape(B, K+1, N, N)
         return x
-        #############################
 
     def loss_function(self, preds, labels):
         """
@@ -75,13 +72,10 @@ class MANN(nn.Module):
         Note:
             Loss should only be calculated on the N test images
         """
-        #############################
-        #### YOUR CODE GOES HERE ####       
         labels_ = torch.clone(labels)
         preds = preds[:, -1:].squeeze(1).reshape(-1, self.num_classes)
         labels_ = labels_[:, -1:].squeeze(1).reshape(-1, self.num_classes).argmax(axis=1)
         return nn.CrossEntropyLoss()(preds, labels_)
-        #############################
 
 
 def train_step(images, labels, model, optim, eval=False):

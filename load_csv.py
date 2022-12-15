@@ -13,16 +13,6 @@ import argparse
 from data_util import read_csv, fields_to_array, read_csv_files
 
 def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
-    """
-    Takes a set of character folders and labels and returns paths to image files
-    paired with labels.
-    Args:
-        paths: A list of character folders
-        labels: List or numpy array of same length as paths
-        nb_samples: Number of images to retrieve per character
-    Returns:
-        List of (label, image_path) tuples
-    """
     if nb_samples is not None:
         #sampler = lambda x: random.sample(x, nb_samples)
         sampler = lambda x: x.sample(nb_samples, replace=False).values
@@ -39,11 +29,6 @@ def get_lands(pd_sample_lands, sample_lands, nb_samples=None, shuffle=True):
     return lands_labels
 
 class DataGenerator(IterableDataset):
-    """
-    Data Generator capable of generating batches of Omniglot data.
-    A "class" is considered a class of omniglot digits.
-    """
-
     def __init__(
         self,
         num_classes,
@@ -94,29 +79,7 @@ class DataGenerator(IterableDataset):
     def _sample(self):
         """
         Samples a batch for training, validation, or testing
-        Args:
-            does not take any arguments
-        Returns:
-            A tuple of (1) Image batch and (2) Label batch:
-                1. image batch has shape [K+1, N, 784] and
-                2. label batch has shape [K+1, N, N]
-            where K is the number of "shots", N is number of classes
-        Note:
-            1. The numpy functions np.random.shuffle and np.eye (for creating)
-            one-hot vectors would be useful.
-
-            2. For shuffling, remember to make sure images and labels are shuffled
-            in the same order, otherwise the one-to-one mapping between images
-            and labels may get messed up. Hint: there is a clever way to use
-            np.random.shuffle here.
-            
-            3. The value for `self.num_samples_per_class` will be set to K+1 
-            since for K-shot classification you need to sample K supports and 
-            1 query.
         """
-
-        #############################
-        #### YOUR CODE GOES HERE ####
         sample_lands = np.random.choice(self.names_labels, self.num_classes)
 
         pd_sample_lands = [self.folders.loc[self.folders['golden_label']==land] for land in sample_lands ]
@@ -141,7 +104,6 @@ class DataGenerator(IterableDataset):
         assert(labels_tensor.shape==(self.num_samples_per_class, self.num_classes, self.num_classes))
 
         return (images_tensor, labels_tensor)
-        #############################
 
     def __iter__(self):
         while True:

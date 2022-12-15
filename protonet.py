@@ -133,18 +133,6 @@ class ProtoNet:
             labels_support = labels_support.to(DEVICE)
             images_query = images_query.to(DEVICE)
             labels_query = labels_query.to(DEVICE)
-            # ********************************************************
-            # ******************* YOUR CODE HERE *********************
-            # ********************************************************
-            # TODO: finish implementing this method.
-            # For a given task, compute the prototypes and the protonet loss.
-            # Use F.cross_entropy to compute classification losses.
-            # Use util.score to compute accuracies.
-            # Make sure to populate loss_batch, accuracy_support_batch, and
-            # accuracy_query_batch.
-
-            # ********************************************************
-            # ******************* YOUR CODE HERE *********************
             Q = images_query.shape[0]
             N = labels_support.max().item()+1
             K = images_support.shape[0]//N
@@ -165,7 +153,6 @@ class ProtoNet:
             accuracy_support_batch.append(accuracy_support)
             accuracy_query_batch.append(accuracy_query)
             loss_batch.append(loss)
-            # ********************************************************
         return (
             torch.mean(torch.stack(loss_batch)),
             np.mean(accuracy_support_batch),

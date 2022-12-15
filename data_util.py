@@ -16,7 +16,6 @@ def fields_to_array(land_fields):
     """
     Takes an image path and returns numpy array
     Args:
-    dim_input: Flattened shape of image
     Returns:
     1 channel image
     """
